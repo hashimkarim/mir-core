@@ -56,6 +56,16 @@ from .schema import (
     to_exclusive_beat_downbeat_activation_data,
     to_frame_class_activation_data,
 )
+from .dance import (
+    DANCE_BEAT_CHANNEL,
+    DANCE_DOWNBEAT_CHANNEL,
+    DANCEBEAT_CHANNEL,
+    DANCE_EVENT_CHANNEL_NAMES,
+    NUM_DANCE_EVENT_CHANNELS,
+    DanceEventActivations,
+    DanceEventChannel,
+    TrackingTarget,
+)
 
 __all__ = [
     "ActivationFormatMismatchError",
@@ -111,4 +121,12 @@ __all__ = [
     "to_event_activation_data",
     "to_exclusive_beat_downbeat_activation_data",
     "to_frame_class_activation_data",
+    "DANCE_BEAT_CHANNEL",
+    "DANCE_DOWNBEAT_CHANNEL",
+    "DANCEBEAT_CHANNEL",
+    "DANCE_EVENT_CHANNEL_NAMES",
+    "NUM_DANCE_EVENT_CHANNELS",
+    "DanceEventActivations",
+    "DanceEventChannel",
+    "TrackingTarget",
 ]
