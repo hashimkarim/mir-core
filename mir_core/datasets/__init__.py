@@ -23,12 +23,22 @@ from .annotations import (
     BeatAnnotation,
     read_beat,
     write_beat,
+    with_dance_structure,
     from_candombe_csv,
     from_beats_tsv,
     from_salsa_dataset,
     from_salsaset_csv,
 )
 from .beat_tracking_dataset import BeatTrackingDataset
+from .dance_annotations import (
+    DANCE_ANNOTATION_IDENTITY_SCHEMA,
+    DANCE_ANNOTATION_RULES_SCHEMA,
+    DANCE_PHASE_STATUSES,
+    DanceAnnotationIdentity,
+    DanceAnnotationRegistry,
+    DanceAnnotationRule,
+    load_dance_annotation_rules,
+)
 from .genre_dataset import GenreDataset
 from .splits import (
     get_dataset_splits,
@@ -44,10 +54,18 @@ __all__ = [
     "BeatAnnotation",
     "read_beat",
     "write_beat",
+    "with_dance_structure",
     "from_candombe_csv",
     "from_beats_tsv",
     "from_salsa_dataset",
     "from_salsaset_csv",
+    "DANCE_ANNOTATION_RULES_SCHEMA",
+    "DANCE_ANNOTATION_IDENTITY_SCHEMA",
+    "DANCE_PHASE_STATUSES",
+    "DanceAnnotationIdentity",
+    "DanceAnnotationRegistry",
+    "DanceAnnotationRule",
+    "load_dance_annotation_rules",
     # Datasets
     "BeatTrackingDataset",
     "GenreDataset",
