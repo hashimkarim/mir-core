@@ -629,6 +629,10 @@ class ParticleFilterTracker:
         self._down_last_row = {
             int(state): index for index, state in enumerate(down_last_states)
         }
+        self._down_transition_targets = np.asarray(
+            self.st2.first_states[0],
+            dtype=self.down_particles.dtype,
+        ).reshape(-1)
         transition_to = np.asarray(self.tm[0])
         transition_from = np.asarray(self.tm[1])
         transition_probability = np.asarray(self.tm[2])
@@ -798,9 +802,9 @@ class ParticleFilterTracker:
                 for j, state in enumerate(last1):
                     arg1 = self._down_last_row[int(state)]
                     transitioned[j] = self._rng.choice(
-                        self.st2.first_states[0],
+                        self._down_transition_targets,
                         1,
-                        p=np.squeeze(self.tm2[arg1]),
+                        p=self.tm2[arg1],
                     )[0]
                 if len(transitioned):
                     state1 = np.concatenate((state1, transitioned))
