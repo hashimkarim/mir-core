@@ -31,8 +31,35 @@ A content-addressed manifest binds every graph to the source checkpoint hash,
 normalized model configuration, export ABI, Torch exporter version, ONNX hash,
 tensor names, shapes, and dtype.
 
+Recurrent exports now identify their computation policy as
+`torch.onnx.legacy.fp64-ordered-fp32-state-v1`. Checkpoint weights are unchanged.
+The convolution, projection, LSTM gates and output normalization compute in
+float64 using an explicit pairwise reduction tree and shared range-reduced
+polynomial nonlinearities. The graph contains no Conv, LSTM, GEMM, MatMul,
+Exp, Tanh, Sigmoid or ReduceSum operators whose internal operation order or
+math implementation can vary by provider. Activations and persisted hidden/cell
+state cast directly to float32 once per frame. There is no state-rounding grid.
+The external ABI stays float32. These primitive tensor operations replace
+provider-specific kernels, whose small differences
+can otherwise send a downstream particle filter down a different trajectory.
+Android and desktop use this same exporter implementation. The policy is part
+of the content-addressed identity, so existing float32 graphs are not reused.
+
+`tools/validation/check_precise_streams.py` compares complete 4,096-frame
+streams across all 38 promoted/stock BeatNet checkpoints. It requires bitwise
+equality of deployed activations and every persisted state value, exact decoder
+events and reset against an independent NumPy implementation of the specified
+operation sequence. It also evaluates the original PyTorch model in float64
+with float32 state boundaries, retaining its differences under the original
+numerical tolerance.
+The original float32 model, checkpoint/split hashes, activation tolerance and
+legacy event comparisons are retained separately. Deployment agreement does
+not establish equivalent held-out musical accuracy to the old computation
+policy. Fixed-operation computation changes graph size and compute cost; measure
+the intended route count on the target device before making latency claims.
+
 Streaming exports are accepted only after a deterministic 12-frame replay
-matches PyTorch on CPU. The gate advances PyTorch and ONNX Runtime hidden/cell
+matches eager PyTorch execution of the deployment graph on CPU. The gate advances PyTorch and ONNX Runtime hidden/cell
 states independently and checks canonical activations, both recurrent outputs,
 and every DanceBeatNet named head on every frame. Its versioned successful
 record is bound to the ONNX digest in the manifest. Python cache reuse and the

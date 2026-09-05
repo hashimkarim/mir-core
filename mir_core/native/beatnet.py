@@ -26,6 +26,8 @@ NATIVE_STREAMING_ABI_VERSION = 1
 NATIVE_STREAMING_PARITY_SCHEMA = "mir.native-streaming-parity-validation/v1"
 NATIVE_STREAMING_PARITY_VERSION = 1
 ONNX_OPSET_VERSION = 18
+EXPORTER_NAME = "torch.onnx.legacy.fp64-ordered-fp32-state-v1"
+
 SUPPORTED_STREAMING_MODELS = frozenset(
     {"beatnet", "beatnet_plus", "dance_beatnet", "multihead_beatnet"}
 )
@@ -231,7 +233,7 @@ def _artifact_identity(
     payload = {
         "abi_version": NATIVE_STREAMING_ABI_VERSION,
         "checkpoint_sha256": str(checkpoint_sha256),
-        "exporter": "torch.onnx.legacy",
+        "exporter": EXPORTER_NAME,
         "model_config_sha256": config_sha256,
         "model_family": model_name,
         "opset": ONNX_OPSET_VERSION,
@@ -286,7 +288,7 @@ def _deployment_model(
 
 def _export_graph(model: Any, model_name: str) -> tuple[Any, tuple[str, ...]]:
     import torch
-    from torch.nn import functional
+    from .precise_streaming import PreciseRecurrentStep
 
     if model_name in {"beatnet", "multihead_beatnet"}:
         output_layer_name = "linear"
@@ -306,39 +308,15 @@ def _export_graph(model: Any, model_name: str) -> tuple[Any, tuple[str, ...]]:
     class StreamingBeatNetGraph(torch.nn.Module):
         def __init__(self) -> None:
             super().__init__()
-            self.conv1 = model.conv1
-            self.linear0 = model.linear0
-            self.lstm = model.lstm
-            self.output_layer = output_layer
+            self.step = PreciseRecurrentStep(model, output_layer)
 
-        def forward(
-            self,
-            features: Any,
-            hidden: Any,
-            cell: Any,
-        ) -> tuple[Any, Any, Any]:
-            batch_size, time_steps, feature_count = features.shape
-            values = features.reshape(batch_size * time_steps, 1, feature_count)
-            values = functional.max_pool1d(
-                functional.relu(self.conv1(values)),
-                2,
-            )
-            values = values.reshape(batch_size * time_steps, -1)
-            values = self.linear0(values).reshape(batch_size, time_steps, -1)
-            values, (next_hidden, next_cell) = self.lstm(
-                values,
-                (hidden, cell),
-            )
-            probabilities = torch.softmax(self.output_layer(values), dim=-1)
-            # Frame-class order is beat-only, downbeat, non-beat.  The public
-            # event ABI is canonical all-beats, downbeats.
+        def forward(self, features: Any, hidden: Any, cell: Any) -> tuple[Any, Any, Any]:
+            logits, next_hidden, next_cell = self.step(features, hidden, cell)
+            probabilities = self.step.math.softmax(logits)
             activations = torch.stack(
-                (
-                    probabilities[..., 0] + probabilities[..., 1],
-                    probabilities[..., 1],
-                ),
+                (probabilities[..., 0] + probabilities[..., 1], probabilities[..., 1]),
                 dim=-1,
-            )
+            ).to(torch.float32)
             return activations, next_hidden, next_cell
 
     if model_name != "dance_beatnet":
@@ -351,48 +329,28 @@ def _export_graph(model: Any, model_name: str) -> tuple[Any, tuple[str, ...]]:
     class StreamingDanceBeatNetGraph(torch.nn.Module):
         def __init__(self) -> None:
             super().__init__()
-            self.conv1 = model.conv1
-            self.linear0 = model.linear0
-            self.lstm = model.lstm
-            self.dance_head = output_layer
-            self.accent_index = accent_index
+            self.step = PreciseRecurrentStep(model, output_layer)
 
-        def forward(
-            self,
-            features: Any,
-            hidden: Any,
-            cell: Any,
-        ) -> tuple[Any, Any, Any, Any, Any, Any]:
-            batch_size, time_steps, feature_count = features.shape
-            values = features.reshape(batch_size * time_steps, 1, feature_count)
-            values = functional.max_pool1d(
-                functional.relu(self.conv1(values)),
-                2,
-            )
-            values = values.reshape(batch_size * time_steps, -1)
-            values = self.linear0(values).reshape(batch_size, time_steps, -1)
-            values, (next_hidden, next_cell) = self.lstm(
-                values,
-                (hidden, cell),
-            )
-            probabilities = torch.sigmoid(self.dance_head(values))
+        def forward(self, features: Any, hidden: Any, cell: Any) -> tuple[Any, ...]:
+            logits, next_hidden, next_cell = self.step(features, hidden, cell)
+            probabilities = self.step.math.sigmoid(logits).to(torch.float32)
             beats = probabilities[..., 0:1]
             downbeats = probabilities[..., 1:2]
             dancebeats = probabilities[..., 2:3]
-            activations = torch.cat(
-                (beats, probabilities[..., self.accent_index : self.accent_index + 1]),
-                dim=-1,
-            )
-            return (
-                activations,
-                beats,
-                downbeats,
-                dancebeats,
-                next_hidden,
-                next_cell,
-            )
+            activations = torch.cat((beats, probabilities[..., accent_index:accent_index+1]), dim=-1)
+            return activations, beats, downbeats, dancebeats, next_hidden, next_cell
 
     return StreamingDanceBeatNetGraph().eval(), _DANCE_OUTPUT_NAMES
+
+
+def build_streaming_step_graph(model: Any, model_name: str = "beatnet") -> Any:
+    """Build the shared one-frame deployment computation without writing files.
+
+    Android and desktop exporters use this same precision policy. Multihead
+    training models must first select a specific recurrent head.
+    """
+    graph, _ = _export_graph(model, _model_name(model_name))
+    return graph
 
 
 def _parity_protocol() -> dict[str, Any]:
@@ -616,8 +574,8 @@ def export_streaming_beatnet_onnx(
 
     try:
         # The legacy exporter is intentional for this first ABI: it emits a
-        # single standard ONNX LSTM node and does not require onnxscript at
-        # deployment-export time. The accepted graph is parity-gated below.
+        # primitive float64 graph and does not require onnxscript at deployment
+        # time. Its float32 input/state/output ABI remains unchanged.
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
@@ -656,7 +614,12 @@ def export_streaming_beatnet_onnx(
             raise RuntimeError(
                 "ONNX export validation requires the optional 'onnx' package"
             ) from exc
-        onnx.checker.check_model(onnx.load(str(destination_path)))
+        serialized = onnx.load(str(destination_path))
+        onnx.checker.check_model(serialized)
+        vendor_math = {"Conv", "LSTM", "Gemm", "MatMul", "Exp", "Tanh", "Sigmoid", "ReduceSum"}
+        unexpected = {node.op_type for node in serialized.graph.node} & vendor_math
+        if unexpected:
+            raise RuntimeError(f"Fixed-operation export contains backend-dependent math: {sorted(unexpected)}")
         parity = _parity_gate(
             graph,
             destination_path,
@@ -714,7 +677,7 @@ def export_streaming_beatnet_onnx(
             "size_bytes": destination_path.stat().st_size,
         },
         "exporter": {
-            "name": "torch.onnx.legacy",
+            "name": EXPORTER_NAME,
             "torch_version": str(torch.__version__),
         },
         "streaming_state": {
@@ -863,12 +826,14 @@ def _load_cached_artifact(
         if not isinstance(payload, dict):
             return None
         onnx_record = payload.get("onnx")
-        if not isinstance(onnx_record, dict):
+        exporter_record = payload.get("exporter")
+        if not isinstance(onnx_record, dict) or not isinstance(exporter_record, dict):
             return None
         if (
             payload.get("schema") != NATIVE_STREAMING_SCHEMA
             or payload.get("abi_version") != NATIVE_STREAMING_ABI_VERSION
             or payload.get("artifact_key") != artifact_key
+            or exporter_record.get("name") != EXPORTER_NAME
             or onnx_record.get("filename") != model_path.name
             or int(onnx_record.get("size_bytes", -1)) != model_path.stat().st_size
             or str(onnx_record.get("sha256")) != _sha256_file(model_path)
