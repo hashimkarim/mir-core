@@ -6,6 +6,13 @@ Both random-call tapes and per-frame particle/event traces have immutable
 digests. Instrumented runs must match uninstrumented runs, and validation
 restores the ambient NumPy state.
 
+Manifest v2 separates file integrity from numerical comparison. Stored native
+files retain their original exact SHA-256 checksums. Fresh runs must match the
+profile/initial-state, random-tape and frame-trace digests exactly. Categorical
+probability rows use the native gate's existing absolute tolerance of 32
+binary64 epsilons. This allows CPU math paths to differ in their final bits
+without treating different random draws or particle states as acceptable.
+
 Run the shared source gate in the MIR environment:
 
 ```bash

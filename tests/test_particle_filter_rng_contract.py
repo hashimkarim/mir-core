@@ -1,6 +1,7 @@
 """Both RNGs share immutable draw/state digests and regression detection."""
 
 import json
+import copy
 import numpy as np
 import pytest
 
@@ -77,3 +78,34 @@ def test_native_manifest_cannot_drift_from_the_shared_contract(contract, tmp_pat
         AssertionError, match="Native and shared RNG contract manifests differ"
     ):
         contract.check(tmp_path)
+
+
+def test_probability_roundoff_preserves_exact_draw_and_state_requirements(contract):
+    expected = json.loads(contract.DEFAULT_MANIFEST.read_text())["cases"]
+    candidate = copy.deepcopy(expected["small-legacy.bin"])
+    candidate["probability_rows"][0][0] = float(
+        np.nextafter(candidate["probability_rows"][0][0], np.inf)
+    )
+    candidate["sha256"] = "different-serialization-due-to-probability-roundoff"
+    assert contract.assert_case_frozen("small-legacy.bin", candidate, expected) > 0.0
+    candidate["random_tape_sha256"] = "0" * 64
+    with pytest.raises(AssertionError, match="Frozen RNG contract changed"):
+        contract.assert_case_frozen("small-legacy.bin", candidate, expected)
+
+
+def test_larger_probability_change_is_rejected_even_with_same_events(contract):
+    expected = json.loads(contract.DEFAULT_MANIFEST.read_text())["cases"]
+    candidate = copy.deepcopy(expected["small-legacy.bin"])
+    candidate["probability_rows"][0][0] += 1e-10
+    with pytest.raises(AssertionError, match="Transition probability contract changed"):
+        contract.assert_case_frozen("small-legacy.bin", candidate, expected)
+
+
+def test_native_artifact_integrity_is_still_exact(contract, tmp_path):
+    path = tmp_path / "corrupt.bin"
+    path.write_bytes(b"changed")
+    expected = json.loads(contract.DEFAULT_MANIFEST.read_text())["cases"][
+        "small-legacy.bin"
+    ]["sha256"]
+    with pytest.raises(AssertionError, match="Frozen RNG contract changed"):
+        contract.assert_frozen_artifact(path, expected)

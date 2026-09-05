@@ -33,6 +33,8 @@ import mir_core
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 DEFAULT_MANIFEST = FIXTURES / "particle_filter_rng_contract.json"
 MAGIC = b"MIRPFC1\0"
+MANIFEST_SCHEMA = "mir.particle-filter-dual-rng/v2"
+PROBABILITY_ATOL = 32.0 * 2.0**-52
 MODES = (PARTICLE_FILTER_RNG_LEGACY_GLOBAL_V1, PARTICLE_FILTER_RNG_PORTABLE_V1)
 PROFILES = (
     (
@@ -142,10 +144,35 @@ def _verify_packaged_profile():
 
 
 def assert_case_frozen(name, metadata, expected):
-    if metadata != expected.get(name):
+    reference = expected.get(name, {})
+    exact_keys = set(metadata) - {"sha256", "probability_rows"}
+    required = {"profile_sha256", "random_tape_sha256", "state_trace_sha256"}
+    mismatches = [key for key in exact_keys if metadata[key] != reference.get(key)]
+    if set(metadata) != set(reference) or not required <= exact_keys or mismatches:
         raise AssertionError(
-            f"Frozen RNG contract changed: {name}. Review the regression; do not regenerate in CI."
+            f"Frozen RNG contract changed: {name}; exact fields: {mismatches}. "
+            "Review the regression; do not regenerate in CI."
         )
+    rows, reference_rows = metadata["probability_rows"], reference["probability_rows"]
+    if len(rows) != len(reference_rows):
+        raise AssertionError(f"Transition probability row count changed: {name}")
+    maximum = 0.0
+    for row, reference_row in zip(rows, reference_rows):
+        actual = np.asarray(row, dtype=np.float64)
+        baseline = np.asarray(reference_row, dtype=np.float64)
+        if (
+            actual.shape != baseline.shape
+            or not len(actual)
+            or not np.all(np.isfinite(actual))
+        ):
+            raise AssertionError(f"Invalid transition probability row: {name}")
+        delta = float(np.max(np.abs(actual - baseline)))
+        maximum = max(maximum, delta)
+        if np.any(actual <= 0.0) or delta > PROBABILITY_ATOL:
+            raise AssertionError(
+                f"Transition probability contract changed: {name}; delta={delta}"
+            )
+    return maximum
 
 
 class _Recorder:
@@ -322,13 +349,19 @@ def make_fixture(mode, seed, frame_count, parameters):
         calls=dict(recorder.calls),
         sha256=hashlib.sha256(data).hexdigest(),
         state_trace_sha256=hashlib.sha256(frames).hexdigest(),
+        profile_sha256=hashlib.sha256(data[:72]).hexdigest(),
+        random_tape_sha256=hashlib.sha256(recorder.tape).hexdigest(),
+        probability_rows=[list(row) for row in recorder.rows],
         bytes=len(data),
     )
     return bytes(data), metadata
 
 
-def assert_frozen(path, data):
-    if not path.is_file() or path.read_bytes() != data:
+def assert_frozen_artifact(path, expected_sha256):
+    if (
+        not path.is_file()
+        or hashlib.sha256(path.read_bytes()).hexdigest() != expected_sha256
+    ):
         raise AssertionError(
             f"Frozen RNG contract changed: {path}. Review the regression; do not regenerate in CI."
         )
@@ -351,10 +384,16 @@ def check(
         fixtures / "manifest.json" if fixtures is not None else manifest_path
     )
     expected = None if write else json.loads(manifest_path.read_text())
+    if not write and (
+        expected.get("schema") != MANIFEST_SCHEMA
+        or expected.get("baseline") != BASELINE
+    ):
+        raise AssertionError("Unsupported or changed RNG manifest provenance")
     if fixtures is not None and not write:
         if expected != json.loads(DEFAULT_MANIFEST.read_text()):
             raise AssertionError("Native and shared RNG contract manifests differ")
     cases = {}
+    comparisons = {}
     for profile, seed, frames, parameters in PROFILES:
         for index, mode in enumerate(MODES):
             name = f"{profile}-{'legacy' if index == 0 else 'portable'}.bin"
@@ -364,9 +403,15 @@ def check(
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(data)
             elif not write:
-                assert_case_frozen(name, metadata, expected["cases"])
+                maximum = assert_case_frozen(name, metadata, expected["cases"])
+                comparisons[name] = {
+                    "probability_max_abs": maximum,
+                    "probability_atol": PROBABILITY_ATOL,
+                    "frozen_artifact_sha256": expected["cases"][name]["sha256"],
+                    "exact_draw_state_and_profile": True,
+                }
                 if path is not None:
-                    assert_frozen(path, data)
+                    assert_frozen_artifact(path, expected["cases"][name]["sha256"])
             if replay:
                 subprocess.run([str(replay), str(path)], check=True)
             if production and index == 1:
@@ -375,19 +420,18 @@ def check(
             print(
                 f"PASS {name}: {frames} frames, {metadata['events']} events", flush=True
             )
-    manifest = dict(
-        schema="mir.particle-filter-dual-rng/v1", baseline=BASELINE, cases=cases
-    )
+    manifest = dict(schema=MANIFEST_SCHEMA, baseline=BASELINE, cases=cases)
     path = manifest_path
     if write:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(manifest, indent=2) + "\n")
-    elif json.loads(path.read_text()) != manifest:
-        raise AssertionError("Frozen RNG manifest changed")
+    elif set(expected["cases"]) != set(cases):
+        raise AssertionError("Frozen RNG case coverage changed")
     return dict(
         **manifest,
         native_reference_checked=replay is not None,
         native_production_checked=production is not None,
+        comparisons=comparisons,
     )
 
 
