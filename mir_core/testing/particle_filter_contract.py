@@ -391,11 +391,12 @@ def check(
     )
 
 
-def main():
+def main(*, default_fixtures=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--fixtures",
         type=Path,
+        default=default_fixtures,
         help="Native binary fixtures; omit for the shared Python manifest",
     )
     parser.add_argument(
