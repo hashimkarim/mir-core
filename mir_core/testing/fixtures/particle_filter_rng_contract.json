@@ -1,0 +1,132 @@
+{
+  "schema": "mir.particle-filter-dual-rng/v1",
+  "baseline": {
+    "repository": "Hashim-K/mir-core",
+    "commit": "14658b3302b00d7b19b42511a5df39172d399ced",
+    "path": "mir_core/postprocessing/particle_filter.py",
+    "numpy": "1.26.4",
+    "madmom_commit": "27f032e8947204902c675e5e341a3faf5dc86dae"
+  },
+  "cases": {
+    "small-legacy.bin": {
+      "rng_contract": "legacy-numpy-global-v1",
+      "seed": 42,
+      "frames": 800,
+      "events": 27,
+      "calls": {
+        "integer": 145,
+        "categorical": 3253,
+        "offset": 8626,
+        "sample": 27
+      },
+      "sha256": "286b742f42a872e795ebd9053abc604d0c7c5c3f01a6ce3c84d9b54fa14d2767",
+      "state_trace_sha256": "2f0390cfbb387555ce9ab80dc8da5cd4585e48e1071eb630427a286e8bc017ee",
+      "bytes": 202819
+    },
+    "small-portable.bin": {
+      "rng_contract": "portable-splitmix64-v1",
+      "seed": 42,
+      "frames": 800,
+      "events": 25,
+      "calls": {
+        "integer": 145,
+        "categorical": 3195,
+        "offset": 8629,
+        "sample": 28
+      },
+      "sha256": "de88553f9eb39fa5d348dfe6904afc98a177a9e9ab00dc723afabd35b6a42b25",
+      "state_trace_sha256": "e0a5a23f8ce41adbd4719ac8889527e1dc9e202736f22b930447935b75d0ca6b",
+      "bytes": 202189
+    },
+    "locked4-legacy.bin": {
+      "rng_contract": "legacy-numpy-global-v1",
+      "seed": 12345,
+      "frames": 800,
+      "events": 24,
+      "calls": {
+        "integer": 145,
+        "categorical": 2999,
+        "offset": 8695,
+        "sample": 28
+      },
+      "sha256": "582044752f376c89d2682ca1ef8c3295870765e1a14d0ca158cc9bc4ebf15ade",
+      "state_trace_sha256": "7a644499afdb8b3e000f775922647643ff50c22d3c8906fbda2a2ad6598f1a72",
+      "bytes": 201631
+    },
+    "locked4-portable.bin": {
+      "rng_contract": "portable-splitmix64-v1",
+      "seed": 12345,
+      "frames": 800,
+      "events": 21,
+      "calls": {
+        "integer": 145,
+        "categorical": 3355,
+        "offset": 9005,
+        "sample": 26
+      },
+      "sha256": "91186c1ee2dff90e37cac9c4aec8f8d0a61e187375a1bef87aca01ca9441b05d",
+      "state_trace_sha256": "a850fabd6b57cbe345c3462c41c7bb841fae35489850c6c050c7dc93790e34c9",
+      "bytes": 210079
+    },
+    "packaged-legacy.bin": {
+      "rng_contract": "legacy-numpy-global-v1",
+      "seed": 0,
+      "frames": 800,
+      "events": 29,
+      "calls": {
+        "integer": 1775,
+        "categorical": 42692,
+        "offset": 120681,
+        "sample": 27
+      },
+      "sha256": "84cd202333b6edff2ab8558af11a19f2c0cd4e27fd7b9b4c622f25f0fc13ab2c",
+      "state_trace_sha256": "7363f3d12d44e8a16ae4f717fa4f5ae8ade848e03491777a98d35e067d034549",
+      "bytes": 2497803
+    },
+    "packaged-portable.bin": {
+      "rng_contract": "portable-splitmix64-v1",
+      "seed": 0,
+      "frames": 800,
+      "events": 28,
+      "calls": {
+        "integer": 1775,
+        "categorical": 42500,
+        "offset": 121428,
+        "sample": 26
+      },
+      "sha256": "5e42338533ef2f9c43fd8497bef6acea723db1e2ddd495b73b6aa817f307d0c7",
+      "state_trace_sha256": "084002cdeb676f3793ab36b11d5c5f10337f49e12e785b1c3e06e2fcc4e018ea",
+      "bytes": 2508753
+    },
+    "sustained-legacy.bin": {
+      "rng_contract": "legacy-numpy-global-v1",
+      "seed": 4294967295,
+      "frames": 4096,
+      "events": 116,
+      "calls": {
+        "integer": 248,
+        "categorical": 16792,
+        "offset": 45338,
+        "sample": 142
+      },
+      "sha256": "c021776f815819a314391db1cc5319c9c1e713557bd132ee59dee02d6286fcd1",
+      "state_trace_sha256": "355d502e78eb7f516be9cdab826e819101926528e5f5dd2b7c9c05e97c40839e",
+      "bytes": 1035752
+    },
+    "sustained-portable.bin": {
+      "rng_contract": "portable-splitmix64-v1",
+      "seed": 4294967295,
+      "frames": 4096,
+      "events": 112,
+      "calls": {
+        "integer": 248,
+        "categorical": 18179,
+        "offset": 46664,
+        "sample": 136
+      },
+      "sha256": "61ddc822234ed8486c5c4df47152c29133071126239db30b72580a8257f05e4b",
+      "state_trace_sha256": "e997615dc712999b083a5c54db44d7184c50fba3fc6df20ce4582cf3591c738e",
+      "bytes": 1070471
+    }
+  }
+}
