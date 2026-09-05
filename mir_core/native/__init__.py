@@ -14,12 +14,26 @@ from .beatnet import (
     onnxruntime_available,
     resolve_streaming_backend,
 )
+from .batch import (
+    NATIVE_BATCH_SCHEMA,
+    NativeBatchModelArtifact,
+    OnnxBatchModelSession,
+    UnsupportedNativeBatchModelError,
+    ensure_batch_model_onnx,
+    export_batch_model_onnx,
+)
 
 __all__ = [
+    "NATIVE_BATCH_SCHEMA",
     "NATIVE_STREAMING_SCHEMA",
+    "NativeBatchModelArtifact",
     "NativeModelArtifact",
+    "OnnxBatchModelSession",
     "OnnxBeatNetStreamingSession",
+    "UnsupportedNativeBatchModelError",
+    "ensure_batch_model_onnx",
     "ensure_streaming_beatnet_onnx",
+    "export_batch_model_onnx",
     "export_streaming_beatnet_onnx",
     "onnxruntime_available",
     "resolve_streaming_backend",
