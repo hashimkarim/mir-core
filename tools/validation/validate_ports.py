@@ -101,6 +101,14 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
         add('references', example, ['cargo', 'run', '--locked', '--example', example, '--', shared_pp, pp/'test/fixtures'/fixture], pp/'rust')
     add('references', 'postprocess-reference-freshness-export', [py, pp/'tools/export_port_fixtures.py', scratch/'port_reference.json'])
     add('references', 'postprocess-reference-freshness-compare', ['cmp', pp/'test/fixtures/port_reference.json', scratch/'port_reference.json'])
+    add('references', 'particle-filter-dual-rng', [py, pp/'tools/check_particle_filter_contract.py',
+        '--replay', pp_build/'particle_filter_reference_contract',
+        '--production', pp_build/'particle_filter_production_contract',
+        '--output', output/'particle-filter-dual-rng.json'])
+    add('references', 'particle-filter-contract-regressions', [py, '-m', 'pytest', '-q',
+        core/'tests/test_postprocessing_particle_filter.py', core/'tests/test_particle_filter_rng_contract.py',
+        pp/'test/python/test_particle_filter_contract.py', '-k', 'not test_frozen_dual_rng_manifest'],
+        extra={'MIR_PF_CONTRACT_BUILD': str(pp_build)})
     add('references', 'router-reference', [py, core/'tools/validation/export_router_fixtures.py', android/'app/src/main/assets/models/catalog.json', router_fixture])
     add('references', 'router-cpp', [py, capi/'tests/check_router.py', capi/'build/mir_router_replay', router_fixture, output/'router.json'])
     add('references', 'logspect-cpp', [py, capi/'tests/check_frontend.py', replay, desktop/'native-runtime/tests/fixtures', output/'logspect.json'])
