@@ -8,6 +8,7 @@ Successor to `mir-beat-env` from the prototype repo.
 ```
 mir_core/
   models/        — model definitions (beat detection, classifier)
+  native/        — versioned ONNX export and native streaming runtimes
   preprocessing/ — audio preprocessing pipeline
   evaluation/    — evaluation metrics and reporting
   datasets/      — dataset loader adapters and metadata interfaces
@@ -28,6 +29,19 @@ pip install -e .
 ```python
 import mir_core
 ```
+
+### Native inference
+
+BeatNet, BeatNet+, and explicitly selected MultiHeadBeatNet heads have a
+content-addressed recurrent ONNX export. The export contract also supports
+DanceBeatNet when its separately developed model is available. BockTCN, BEAST, SpecTNT, and
+all seven classifier architectures have parity-gated batch/classifier exports.
+The three batch audio frontends, EfficientAT, and YAMNet also have independent
+native artifacts at their explicit waveform boundaries.
+Install the optional runtime dependencies with `pip install -e '.[native]'`.
+The artifact ABIs, native-host boundary, parity gates, and remaining streaming
+limitations are documented in
+[`docs/native-runtime.md`](docs/native-runtime.md).
 
 ### Shared split plans
 
