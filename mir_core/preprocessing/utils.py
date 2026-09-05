@@ -14,7 +14,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.signal import argrelmax
 
-import madmom
+from mir_core.utils.signal import smooth_signal
 
 # Default constants
 FPS = 100  # Frames per second
@@ -84,7 +84,7 @@ def infer_tempo(
 
     # Smooth histogram
     if hist_smooth > 0:
-        bins = madmom.audio.signal.smooth(bins, hist_smooth)
+        bins = smooth_signal(bins, hist_smooth)
 
     # Interpolate for finer resolution
     interpolation_fn = interp1d(intervals, bins, 'quadratic')

@@ -62,3 +62,9 @@ adapters and post-split policies belong in the consuming repository.
 All other code repos (`mir-train-hpc`, `mir-desktop-app`, `mir-webapp`,
 `mir-embedded-ai`) import from this package only.
 No sibling repo imports another sibling repo directly.
+
+## Third-party attribution
+
+Madmom-derived behavior and the separate non-commercial/share-alike terms for
+the packaged legacy BockTCN model pickles are documented in
+[`third_party/madmom-NOTICE.md`](third_party/madmom-NOTICE.md).

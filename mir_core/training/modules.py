@@ -22,7 +22,6 @@ except ImportError:
 
 from torch.utils.data import DataLoader
 
-import madmom
 import mir_eval
 
 from mir_core.beats.schema import BEAT_CHANNEL, FrameClass
@@ -160,6 +159,8 @@ class BeatTrackingModule(L.LightningModule):
 
     def test_step(self, batch: Dict[str, Any], batch_idx: int) -> Dict[str, Any]:
         """Test step with beat detection and evaluation."""
+        import madmom
+
         x = batch["x"]
         sr = batch["sr"].detach().cpu().item()
         beats_target = batch["beats_ann"].squeeze().detach().cpu().numpy()
@@ -424,6 +425,8 @@ class BeatNetModule(L.LightningModule):
 
     def test_step(self, batch: Dict[str, Any], batch_idx: int) -> Dict[str, Any]:
         """Test step with beat detection and evaluation."""
+        import madmom
+
         x = batch["x"]
         beats_target = batch["beats_ann"].squeeze().detach().cpu().numpy()
 

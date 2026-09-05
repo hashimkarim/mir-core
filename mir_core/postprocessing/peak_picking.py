@@ -8,9 +8,10 @@ Functions:
 """
 
 import numpy as np
-import madmom
 from scipy.interpolate import interp1d
 from scipy.signal import argrelmax
+
+from mir_core.utils.signal import smooth_signal
 
 
 def detect_beats(
@@ -69,7 +70,7 @@ def detect_tempo(
 
     # Smooth histogram
     if hist_smooth > 0:
-        bins = madmom.audio.signal.smooth(bins, hist_smooth)
+        bins = smooth_signal(bins, hist_smooth)
 
     # Interpolate for finer resolution
     interpolation_fn = interp1d(tempi, bins, 'quadratic')

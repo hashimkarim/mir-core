@@ -20,6 +20,11 @@ Functions:
     pad_features  — repeat-pad first/last frames (used by BeatDataset).
 """
 
+from __future__ import annotations
+
+from importlib import import_module
+from typing import Any
+
 from .utils import (
     FPS,
     NUM_BANDS,
@@ -52,10 +57,28 @@ from .utils import (
     pad_features,
 )
 
-from .madmom_features import PreProcessor, BeatNetPreProcessor, BeatNetPlusPreProcessor
-from .mel_features import SimpleMelPreProcessor, BeastPreProcessor
-from .harmonic_features import SpecTNTPreProcessor
-from .registry import PREPROCESSOR_BY_MODEL, get_preprocessor_for_model
+
+_LAZY_EXPORTS = {
+    "PreProcessor": (".madmom_features", "PreProcessor"),
+    "BeatNetPreProcessor": (".madmom_features", "BeatNetPreProcessor"),
+    "BeatNetPlusPreProcessor": (".madmom_features", "BeatNetPlusPreProcessor"),
+    "SimpleMelPreProcessor": (".mel_features", "SimpleMelPreProcessor"),
+    "BeastPreProcessor": (".mel_features", "BeastPreProcessor"),
+    "SpecTNTPreProcessor": (".harmonic_features", "SpecTNTPreProcessor"),
+    "PREPROCESSOR_BY_MODEL": (".registry", "PREPROCESSOR_BY_MODEL"),
+    "get_preprocessor_for_model": (".registry", "get_preprocessor_for_model"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    """Load optional/heavy frontend implementations only when requested."""
+
+    if name not in _LAZY_EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_name, attribute_name = _LAZY_EXPORTS[name]
+    value = getattr(import_module(module_name, __name__), attribute_name)
+    globals()[name] = value
+    return value
 
 __all__ = [
     # Constants

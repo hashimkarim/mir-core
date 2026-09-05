@@ -7,6 +7,9 @@ utilities for beat, downbeat, and tempo tracking research.
 
 __version__ = "0.2.0"
 
+from importlib import import_module
+from typing import Any
+
 # Re-export top-level API for convenience.
 # Prefer direct submodule imports for AI-friendly context efficiency:
 #   from mir_core.models.beatnet.crnn import BeatNetCRNN
@@ -42,32 +45,33 @@ except ModuleNotFoundError:
     TrainingMethod = None
     ModelSpec = None
 
-try:
-    from .preprocessing import (
-        PreProcessor,
-        BeatNetPreProcessor,
-        BeatNetPlusPreProcessor,
-        BeastPreProcessor,
-        SpecTNTPreProcessor,
-        FPS,
-        NUM_BANDS,
-        FFT_SIZE,
-        MASK_VALUE,
-    )
-except ModuleNotFoundError:
-    PreProcessor = None
-    BeatNetPreProcessor = None
-    BeatNetPlusPreProcessor = None
-    BeastPreProcessor = None
-    SpecTNTPreProcessor = None
-    FPS = 100
-    NUM_BANDS = 12
-    FFT_SIZE = 2048
-    MASK_VALUE = -1
+_LAZY_EXPORTS = {
+    "PreProcessor": (".preprocessing", "PreProcessor"),
+    "BeatNetPreProcessor": (".preprocessing", "BeatNetPreProcessor"),
+    "BeatNetPlusPreProcessor": (".preprocessing", "BeatNetPlusPreProcessor"),
+    "BeastPreProcessor": (".preprocessing", "BeastPreProcessor"),
+    "SpecTNTPreProcessor": (".preprocessing", "SpecTNTPreProcessor"),
+    "FPS": (".preprocessing", "FPS"),
+    "NUM_BANDS": (".preprocessing", "NUM_BANDS"),
+    "FFT_SIZE": (".preprocessing", "FFT_SIZE"),
+    "MASK_VALUE": (".preprocessing", "MASK_VALUE"),
+    "DBNBeatTracker": (".postprocessing", "DBNBeatTracker"),
+    "ParticleFilterTracker": (".postprocessing", "ParticleFilterTracker"),
+    "detect_beats": (".postprocessing", "detect_beats"),
+}
 
-try:
-    from .postprocessing import DBNBeatTracker, ParticleFilterTracker, detect_beats
-except ModuleNotFoundError:
-    DBNBeatTracker = None
-    ParticleFilterTracker = None
-    detect_beats = None
+
+def __getattr__(name: str) -> Any:
+    """Keep optional DSP/decoder dependencies off unrelated import paths."""
+
+    if name not in _LAZY_EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_name, attribute_name = _LAZY_EXPORTS[name]
+    try:
+        value = getattr(import_module(module_name, __name__), attribute_name)
+    except ModuleNotFoundError:
+        # Preserve the historical convenience-API behavior in minimal
+        # installations: optional top-level exports resolve to None.
+        value = None
+    globals()[name] = value
+    return value

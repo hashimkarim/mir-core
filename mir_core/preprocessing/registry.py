@@ -2,24 +2,30 @@
 
 from __future__ import annotations
 
-from typing import Callable
-
-from .madmom_features import PreProcessor, BeatNetPreProcessor, BeatNetPlusPreProcessor
-from .mel_features import BeastPreProcessor
-from .harmonic_features import SpecTNTPreProcessor
+from importlib import import_module
+from typing import Any, Callable
 
 
-PREPROCESSOR_BY_MODEL: dict[str, Callable[[], object]] = {
-    "bock_tcn": PreProcessor,
-    "bocktcn": PreProcessor,
-    "beatnet": BeatNetPreProcessor,
-    "beatnet_crnn": BeatNetPreProcessor,
-    "multihead_beatnet": BeatNetPreProcessor,
-    "beatnet_plus": BeatNetPlusPreProcessor,
-    "beatnet+": BeatNetPlusPreProcessor,
-    "beatnet-plus": BeatNetPlusPreProcessor,
-    "beast": BeastPreProcessor,
-    "spectnt": SpecTNTPreProcessor,
+def _lazy_constructor(module_name: str, class_name: str) -> Callable[..., object]:
+    def construct(*args: Any, **kwargs: Any) -> object:
+        module = import_module(module_name, __package__)
+        return getattr(module, class_name)(*args, **kwargs)
+
+    construct.__name__ = class_name
+    return construct
+
+
+PREPROCESSOR_BY_MODEL: dict[str, Callable[..., object]] = {
+    "bock_tcn": _lazy_constructor(".madmom_features", "PreProcessor"),
+    "bocktcn": _lazy_constructor(".madmom_features", "PreProcessor"),
+    "beatnet": _lazy_constructor(".madmom_features", "BeatNetPreProcessor"),
+    "beatnet_crnn": _lazy_constructor(".madmom_features", "BeatNetPreProcessor"),
+    "multihead_beatnet": _lazy_constructor(".madmom_features", "BeatNetPreProcessor"),
+    "beatnet_plus": _lazy_constructor(".madmom_features", "BeatNetPlusPreProcessor"),
+    "beatnet+": _lazy_constructor(".madmom_features", "BeatNetPlusPreProcessor"),
+    "beatnet-plus": _lazy_constructor(".madmom_features", "BeatNetPlusPreProcessor"),
+    "beast": _lazy_constructor(".mel_features", "BeastPreProcessor"),
+    "spectnt": _lazy_constructor(".harmonic_features", "SpecTNTPreProcessor"),
 }
 
 
