@@ -10,9 +10,179 @@ from mir_core.beats.schema import (
 )
 from mir_core.postprocessing import ParticleFilterTracker
 from mir_core.postprocessing.particle_filter import (
+    PARTICLE_FILTER_RNG_LEGACY_GLOBAL_V1,
+    PARTICLE_FILTER_RNG_PORTABLE_V1,
+    PortableParticleFilterRNG,
     _beat_densities,
     _down_densities,
+    normalize_particle_filter_rng_contract,
 )
+
+
+def _numpy_random_states_equal(left: tuple, right: tuple) -> bool:
+    return (
+        left[0] == right[0]
+        and np.array_equal(left[1], right[1])
+        and left[2:] == right[2:]
+    )
+
+
+def test_portable_rng_v1_has_frozen_splitmix64_vectors() -> None:
+    rng = PortableParticleFilterRNG(42)
+
+    assert [rng.next_u64() for _ in range(6)] == [
+        0xBDD732262FEB6E95,
+        0x28EFE333B266F103,
+        0x47526757130F9F52,
+        0x581CE1FF0E4AE394,
+        0x9BC585A244823F2,
+        0xDE4431FA3C80DB06,
+    ]
+    rng.reset()
+    assert [rng.randbelow(bound) for bound in (3, 10, 1000, 2**32 + 1)] == [
+        1,
+        1,
+        858,
+        3056468374,
+    ]
+    rng.reset()
+    np.testing.assert_array_equal(
+        rng.sample_without_replacement(12, 5),
+        [1, 6, 10, 3, 0],
+    )
+
+
+@pytest.mark.parametrize("alias", ["portable", "splitmix64-v1"])
+def test_portable_rng_contract_aliases_are_explicit(alias: str) -> None:
+    assert (
+        normalize_particle_filter_rng_contract(alias) == PARTICLE_FILTER_RNG_PORTABLE_V1
+    )
+
+
+def test_legacy_global_rng_remains_the_default_contract() -> None:
+    tracker = ParticleFilterTracker(
+        particle_size=20,
+        down_particle_size=5,
+        num_tempi=30,
+    )
+
+    assert tracker.rng_contract == PARTICLE_FILTER_RNG_LEGACY_GLOBAL_V1
+    assert tracker.random_seed is None
+
+
+def test_legacy_global_rng_preserves_frozen_historical_replay() -> None:
+    values = np.zeros((360, 2), dtype=np.float32)
+    values[:, 0] = 0.9
+    values[:, 1] = 0.05
+    random_state = np.random.get_state()
+    try:
+        np.random.seed(12345)
+        tracker = ParticleFilterTracker(
+            fps=50,
+            min_bpm=80,
+            max_bpm=180,
+            particle_size=96,
+            down_particle_size=24,
+            num_tempi=64,
+        )
+        decoded = tracker.process(ExclusiveBeatDownbeatActivations(values))
+    finally:
+        np.random.set_state(random_state)
+
+    np.testing.assert_array_equal(
+        np.rint(decoded[:, 0] * tracker.fps).astype(np.int64),
+        [
+            18,
+            27,
+            39,
+            48,
+            60,
+            69,
+            81,
+            90,
+            102,
+            111,
+            123,
+            132,
+            144,
+            153,
+            165,
+            174,
+            186,
+            195,
+            207,
+            216,
+            228,
+            237,
+            254,
+            269,
+            278,
+            288,
+            296,
+            309,
+            317,
+            329,
+            337,
+            349,
+            357,
+        ],
+    )
+    np.testing.assert_array_equal(decoded[:, 1], np.full(33, 2.0))
+    assert int(tracker.particles.sum()) == 6124
+    assert int(tracker.down_particles.sum()) == 134
+
+
+def test_portable_rng_requires_an_owned_seed() -> None:
+    with pytest.raises(ValueError, match="requires an explicit random_seed"):
+        ParticleFilterTracker(
+            particle_size=20,
+            down_particle_size=5,
+            num_tempi=30,
+            rng_contract=PARTICLE_FILTER_RNG_PORTABLE_V1,
+        )
+
+
+def test_legacy_rng_rejects_a_misleading_owned_seed() -> None:
+    with pytest.raises(ValueError, match="does not own a random_seed"):
+        ParticleFilterTracker(
+            particle_size=20,
+            down_particle_size=5,
+            num_tempi=30,
+            rng_contract=PARTICLE_FILTER_RNG_LEGACY_GLOBAL_V1,
+            random_seed=42,
+        )
+
+
+def test_portable_particle_filter_reset_replays_exactly_without_global_rng() -> None:
+    values = np.zeros((360, 2), dtype=np.float32)
+    values[:, 0] = 0.9
+    values[:, 1] = 0.05
+    global_before = np.random.get_state()
+    tracker = ParticleFilterTracker(
+        fps=50,
+        min_bpm=80,
+        max_bpm=180,
+        particle_size=120,
+        down_particle_size=24,
+        num_tempi=30,
+        rng_contract=PARTICLE_FILTER_RNG_PORTABLE_V1,
+        random_seed=42,
+    )
+    initial_particles = tracker.particles.copy()
+    initial_down_particles = tracker.down_particles.copy()
+
+    first = tracker.process(ExclusiveBeatDownbeatActivations(values))
+    first_particles = tracker.particles.copy()
+    first_down_particles = tracker.down_particles.copy()
+    tracker.reset()
+    np.testing.assert_array_equal(tracker.particles, initial_particles)
+    np.testing.assert_array_equal(tracker.down_particles, initial_down_particles)
+    second = tracker.process(ExclusiveBeatDownbeatActivations(values))
+
+    np.testing.assert_array_equal(second, first)
+    np.testing.assert_array_equal(tracker.particles, first_particles)
+    np.testing.assert_array_equal(tracker.down_particles, first_down_particles)
+    assert _numpy_random_states_equal(global_before, np.random.get_state())
 
 
 def test_sparse_particle_likelihoods_match_full_state_densities() -> None:
