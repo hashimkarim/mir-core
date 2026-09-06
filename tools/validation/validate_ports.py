@@ -99,6 +99,9 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
         '--output', output/'resampling.json'])
     for example, fixture in [('check_replay', 'port_reference.json'), ('check_dance', 'dance_port_reference.json')]:
         add('references', example, ['cargo', 'run', '--locked', '--example', example, '--', shared_pp, pp/'test/fixtures'/fixture], pp/'rust')
+    add('references', 'offline-options-replay', ['cargo', 'run', '--locked', '--example', 'check_replay', '--', shared_pp, pp/'test/fixtures/offline_options_reference.json'], pp/'rust')
+    add('references', 'offline-options-reference-export', [py, pp/'tools/export_offline_options_fixtures.py', scratch/'offline_options_reference.json'])
+    add('references', 'offline-options-reference-compare', ['cmp', pp/'test/fixtures/offline_options_reference.json', scratch/'offline_options_reference.json'])
     add('references', 'postprocess-reference-freshness-export', [py, pp/'tools/export_port_fixtures.py', scratch/'port_reference.json'])
     add('references', 'postprocess-reference-freshness-compare', ['cmp', pp/'test/fixtures/port_reference.json', scratch/'port_reference.json'])
     add('references', 'particle-filter-dual-rng', [py, pp/'tools/check_particle_filter_contract.py',
@@ -114,7 +117,7 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
     add('references', 'logspect-cpp', [py, capi/'tests/check_frontend.py', replay, desktop/'native-runtime/tests/fixtures', output/'logspect.json'])
     add('references', 'spectnt-model', [py, '-m', 'pytest', '-q', core/'tests/test_spectnt.py'])
     suites = [core/'tests/test_native_beatnet.py', core/'tests/test_precise_streaming.py', core/'tests/test_native_batch.py',
-              core/'tests/test_native_classifier.py', core/'tests/test_native_batch_frontend.py',
+              core/'tests/test_native_classifier.py', core/'tests/test_native_legacy_bock.py', core/'tests/test_native_batch_frontend.py',
               core/'tests/test_native_classifier_frontend.py',
               core/'tools/validation/test_long_models.py', ROOT/'mir-train-hpc/tests/test_native_classifier_frontend.py']
     add('references', 'onnx-source-and-cpp-replay', [py, '-m', 'pytest', '-q', '--import-mode=importlib', '-p', 'port_validation_plugin', *suites],
