@@ -15,7 +15,7 @@ from mir_core.models import SpecTNT
 from mir_core.models.spectnt import ResFrontEnd
 
 
-def test_spectnt_defaults_match_official_beat_config() -> None:
+def test_spectnt_defaults_match_mwm_reproduction_beat_config() -> None:
     model = SpecTNT()
 
     assert sum(p.numel() for p in model.parameters() if p.requires_grad) == 5_664_042

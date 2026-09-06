@@ -2,9 +2,13 @@
 SpecTNT model for frame-wise beat and downbeat activation.
 
 Based on Hung et al. "Modeling Beats and Downbeats with a
-Time-Frequency Transformer" (ICASSP 2022) and the official SpecTNT
-implementation:
-https://github.com/andyhahaha/SpecTNT
+Time-Frequency Transformer" (ICASSP 2022), implemented against the unofficial
+MWM-io reproduction at commit 5fa5fd1964a92c4eb02e7b1ab6a83ca0c50b934f:
+https://github.com/MWM-io/SpecTNT-pytorch
+
+Full-geometry numerical parity with that reproduction is verified. Fidelity
+to an original-author implementation/checkpoint and the paper's reported
+accuracy has not been established.
 
 The upstream beat-tracking checkpoint order is [beat, downbeat, non-beat].
 This module exposes the same order so decoder adapters can treat BeatNet and
@@ -55,7 +59,7 @@ class Res2DMaxPoolModule(nn.Module):
 
 
 class ResFrontEnd(nn.Module):
-    """Three-block ResNet front end from the official SpecTNT beat config."""
+    """Three-block ResNet front end from the MWM-io reproduction's beat config."""
 
     def __init__(
         self,
@@ -233,12 +237,12 @@ class SpecTNT(nn.Module):
     """
     SpecTNT beat/downbeat model with BeatNet-style public outputs.
 
-Args match the official beat-tracking config in
-``configs/beats.yaml`` from the original repository. The model expects
+Args match the beat-tracking config in
+``configs/beats.yaml`` from the MWM-io reproduction. The model expects
 harmonic representation features shaped ``(batch, 6, freq, time)``.
-The released config/code instantiate 5,664,042 trainable parameters; this
+The reproduction's config/code instantiate 5,664,042 trainable parameters; this
 differs from the ICASSP paper's reported 4,637,392, so this port prioritizes
-checkpoint-compatible released-code parity.
+reproduction-code parity. Original-author checkpoint fidelity is unverified.
 
 Returns a dictionary with:
     - ``logits``: frame logits, ``[beat, downbeat, non-beat]``
