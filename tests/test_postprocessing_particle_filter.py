@@ -340,6 +340,35 @@ def test_particle_filter_keeps_bounded_populations_after_injection() -> None:
     assert len(tracker.down_particles) == tracker.down_particle_size
 
 
+def test_particle_filter_supports_a_single_locked_eight_count_meter() -> None:
+    random_state = np.random.get_state()
+    try:
+        np.random.seed(0)
+        tracker = ParticleFilterTracker(
+            beats_per_bar=[8],
+            min_beats_per_bar=8,
+            max_beats_per_bar=8,
+            min_bpm=80,
+            max_bpm=200,
+            particle_size=100,
+            down_particle_size=20,
+            num_tempi=20,
+        )
+        values = np.tile(
+            np.asarray([[0.35, 0.6]], dtype=np.float32),
+            (100, 1),
+        )
+
+        decoded = tracker.process(ExclusiveBeatDownbeatActivations(values))
+    finally:
+        np.random.set_state(random_state)
+
+    assert decoded.ndim == 2
+    assert decoded.shape[1] == 2
+    assert len(tracker.particles) == tracker.particle_size
+    assert len(tracker.down_particles) == tracker.down_particle_size
+
+
 @pytest.mark.parametrize(
     ("parameter", "value", "message"),
     [
