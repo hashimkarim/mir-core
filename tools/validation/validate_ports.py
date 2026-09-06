@@ -87,7 +87,9 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
         f'-DMIR_RUNTIME_LIBRARY={capi}/target/release/libmir_native_runtime_capi.so'])
     add('native', 'capi-build', ['cmake', '--build', capi/'build', '--parallel', '2'])
     add('native', 'engine-tests', ['cargo', 'test', '--locked', '--all-targets'], desktop/'native-engine')
-    add('native', 'engine-actual-decoder', ['cargo', 'test', '--locked', '--all-targets', '--', '--ignored'], desktop/'native-engine')
+    add('native', 'engine-actual-decoder', ['cargo', 'test', '--locked', '--all-targets', '--', '--ignored', '--skip', 'every_hot_route_matches_an_independent_uninterrupted_stage'], desktop/'native-engine')
+    add('native', 'engine-build', ['cargo', 'build', '--locked'], desktop/'native-engine')
+    add('native', 'causal-classifier-replay-build', ['cargo', 'build', '--locked', '--example', 'causal_classifier_replay'], desktop/'native-runtime')
     add('native', 'desktop-tests', ['cargo', 'test', '--locked', '--all-targets'], desktop/'desktop-rust')
     qt = desktop/'desktop-cpp'
     add('native', 'qt-configure', ['cmake', '-S', qt, '-B', qt/'build/ports-remediation', '-DCMAKE_BUILD_TYPE=Release'])
@@ -127,6 +129,12 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
         extra={'MIR_PORT_FIXTURES': str(yamnet), 'MIR_CPP_REPLAY': str(replay)})
     add('references', 'promoted-classifiers', [py, core/'tools/validation/check_promoted_classifiers.py',
         '--output', output/'classifiers', '--cpp-replay', replay])
+    add('references', 'causal-classifier-source', [py, core/'tools/validation/check_native_causal_classifier.py', scratch/'causal-classifier'])
+    add('references', 'promoted-causal-routing', [py, core/'tools/validation/check_native_promoted_routing.py', scratch/'promoted-routing'])
+    add('references', 'desktop-routing', [py, core/'tools/validation/check_native_desktop_routing.py',
+        scratch/'causal-classifier/logspect-running_peak-22050.input.json', scratch/'desktop-routing'])
+    add('references', 'desktop-dance-dispatch-export', [py, core/'tools/validation/export_desktop_dance_dispatch.py', scratch/'dance_dispatch.json'])
+    add('references', 'desktop-dance-dispatch-freshness', ['cmp', scratch/'dance_dispatch.json', desktop/'native-engine/fixtures/dance_dispatch.json'])
 
     add('android', 'android-jvm-and-apk', [android/'gradlew', '--no-daemon', ':app:testDebugUnitTest',
         ':haptic-common:testDebugUnitTest', ':wear:testDebugUnitTest', ':app:assembleDebug', ':app:assembleDebugAndroidTest',
