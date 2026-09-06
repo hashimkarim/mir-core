@@ -24,7 +24,7 @@ import numpy as np
 NATIVE_BATCH_SCHEMA = "mir.native-batch-model/v1"
 NATIVE_BATCH_ABI_VERSION = 1
 BATCH_ONNX_OPSET_VERSION = 18
-SUPPORTED_BATCH_MODELS = frozenset({"beast", "bocktcn", "spectnt"})
+SUPPORTED_BATCH_MODELS = frozenset({"beast", "bocktcn", "bocktcn_legacy", "spectnt"})
 UNSUPPORTED_BATCH_MODELS: dict[str, str] = {}
 _MODEL_NAME_ALIASES = {
     "bock_tcn": "bocktcn",
@@ -341,7 +341,48 @@ def _contracts(
         return _beast_contract(model, example_shape)
     if model_name == "bocktcn":
         return _bocktcn_contract(model, example_shape)
+    if model_name == "bocktcn_legacy":
+        from mir_core.models.bock_tcn.legacy import LegacyBockTCN
+
+        if not isinstance(model, LegacyBockTCN):
+            raise TypeError("historical Bock export requires LegacyBockTCN")
+        model.verify_original_weights()
+        if len(example_shape) != 4 or example_shape[1] != 1 or example_shape[3] != 81:
+            raise ValueError("historical Bock input must be [batch,1,time,81]")
+        return (
+            {
+                "mode": "dynamic_batch_and_time",
+                "input": {
+                    "name": "features",
+                    "dtype": "float32",
+                    "shape": ["batch", 1, "input_time", 81],
+                    "constraints": {"input_time_min": 1},
+                },
+                "time_relation": "output_time=input_time",
+            },
+            ("beats", "tempo"),
+            [
+                {
+                    "name": "beats",
+                    "semantics": "all_beats_probability",
+                    "shape": ["batch", "input_time", 1],
+                },
+                {
+                    "name": "tempo",
+                    "semantics": "tempo_class_probability",
+                    "shape": ["batch", 300],
+                },
+            ],
+        )
     return _spectnt_contract(model, example_shape)
+
+
+def _verify_historical_identity(model, model_name, model_config, digest):
+    if model_name == "bocktcn_legacy":
+        if dict(model_config) != model.port_config or digest != model.checkpoint_sha256:
+            raise ValueError(
+                "historical Bock metadata must identify the verified original members"
+            )
 
 
 def _artifact_identity(
@@ -678,6 +719,8 @@ def _deployment_graph(
     import torch
 
     deployment_model = copy.deepcopy(model).cpu().eval()
+    if model_name == "bocktcn_legacy":
+        return deployment_model
     if model_name == "beast":
         return _beast_deployment_graph(deployment_model, example_shape[1])
     if model_name == "bocktcn":
@@ -724,7 +767,7 @@ def _dynamic_axes(
     output_specs: Sequence[Mapping[str, Any]],
 ) -> dict[str, dict[int, str]]:
     axes: dict[str, dict[int, str]] = {"features": {0: "batch"}}
-    if model_name == "bocktcn":
+    if model_name in {"bocktcn", "bocktcn_legacy"}:
         axes["features"][2] = "input_time"
     for output in output_specs:
         name = str(output["name"])
@@ -732,6 +775,12 @@ def _dynamic_axes(
         shape = output["shape"]
         if model_name == "bocktcn" and len(shape) > 1 and shape[1] == "input_time-4":
             axes[name][1] = "output_time"
+        if (
+            model_name == "bocktcn_legacy"
+            and len(shape) > 1
+            and shape[1] == "input_time"
+        ):
+            axes[name][1] = "input_time"
     return axes
 
 
@@ -840,6 +889,7 @@ def export_batch_model_onnx(
         normalized_name,
         example_shape,
     )
+    _verify_historical_identity(model, normalized_name, model_config, digest)
     try:
         parameter = next(model.parameters())
     except StopIteration as exc:
@@ -919,6 +969,17 @@ def export_batch_model_onnx(
                 ),
             ),
         )
+    if normalized_name == "bocktcn_legacy":
+        extra_probes = tuple(
+            (
+                f"normal(seed=2019,batch={batch},time={frames})",
+                torch.randn(
+                    (batch, 1, frames, 81),
+                    generator=torch.Generator().manual_seed(2019),
+                ),
+            )
+            for batch, frames in [(1, 1), (2, example_shape[2] + 7)]
+        )
     parity = _parity_gate(
         graph,
         destination_path,
@@ -963,6 +1024,10 @@ def export_batch_model_onnx(
         "deployment_transforms": {
             "beast": ["contextual_blocks_to_functional_tensor_graph"],
             "bocktcn": ["conv1d_same_to_explicit_symmetric_padding"],
+            "bocktcn_legacy": [
+                "madmom_scipy_ordered_convolution",
+                "edge_padding_and_ordered_ensemble_mean",
+            ],
             "spectnt": [],
         }[normalized_name],
         "parity_validation": parity,
@@ -1032,6 +1097,7 @@ def ensure_batch_model_onnx(
         normalized_name,
         example_shape,
     )
+    _verify_historical_identity(model, normalized_name, model_config, digest)
     artifact_key, _ = _artifact_identity(
         model_name=normalized_name,
         model_config=model_config,

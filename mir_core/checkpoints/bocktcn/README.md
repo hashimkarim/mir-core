@@ -19,3 +19,27 @@ The selector names map to the eight ensemble members:
 
 These are madmom pickle resources for the published inference ensemble, not
 native PyTorch `BockTCN` state dictionaries.
+
+## Portable original ensemble
+
+`mir_core.models.bock_tcn.LegacyBockTCN()` loads all eight resources only after
+checking their pinned SHA-256 digests. Pass a list of packaged selectors to
+export individual members. This inference-only conversion preserves the
+original 2019 beat and 300-class tempo heads; it is separate from the trainable
+hybrid `BockTCN`. The native batch family is `bocktcn_legacy`.
+
+Use `ensure_batch_model_onnx(model, model_name="bocktcn_legacy",
+model_config=model.port_config, checkpoint_sha256=model.checkpoint_sha256,
+input_shape=(1, 1, 37, 81))`. Its input comes from the existing `bocktcn` native
+waveform frontend at 44100 Hz and 100 fps. The model repeats the boundary
+feature frames twice, returns one beat activation per original frame, and
+averages the members in the original order. Tempo is a whole-sequence output.
+This is a noncausal batch model; chunking changes its context.
+
+The conversion follows madmom's SciPy convolution path: each kernel uses
+double accumulation before float32 channel summation. The export gate and
+`tests/test_native_legacy_bock.py` compare all eight trained members and the
+full waveform ensemble against the original madmom processors with the
+existing fixed native model tolerance (`rtol=2e-5`, `atol=2e-6`). Exporting
+modified weights or source metadata under this historical identity is rejected.
+The original resource licensing and attribution above still apply.
