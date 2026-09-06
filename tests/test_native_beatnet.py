@@ -450,7 +450,7 @@ def test_native_artifact_cache_is_content_addressed_and_verified(
 
 @pytest.mark.parametrize(
     "damage",
-    ["missing", "failed", "stale_version", "stale_graph", "unknown_field"],
+    ["missing", "failed", "stale_version", "stale_graph", "unknown_field", "stale_numerics"],
 )
 def test_native_cache_rejects_missing_failed_or_stale_parity(
     tmp_path: Path,
@@ -479,6 +479,8 @@ def test_native_cache_rejects_missing_failed_or_stale_parity(
         payload["parity_validation"]["version"] = 0
     elif damage == "stale_graph":
         payload["parity_validation"]["onnx_sha256"] = "0" * 64
+    elif damage == "stale_numerics":
+        payload["exporter"]["name"] = "torch.onnx.legacy"
     else:
         payload["parity_validation"]["unverified_claim"] = True
     exported.manifest_path.write_text(
