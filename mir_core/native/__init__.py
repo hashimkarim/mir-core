@@ -42,6 +42,10 @@ from .classifier import (
     ensure_classifier_onnx,
     export_classifier_onnx,
 )
+from .classifier_frontend import (
+    ensure_classifier_frontend_onnx,
+    export_classifier_frontend_onnx,
+)
 
 __all__ = [
     "BATCH_FRONTEND_ONNX_OPSET_VERSION",
@@ -65,10 +69,12 @@ __all__ = [
     "ensure_batch_frontend_onnx",
     "ensure_batch_model_onnx",
     "ensure_classifier_onnx",
+    "ensure_classifier_frontend_onnx",
     "ensure_streaming_beatnet_onnx",
     "export_batch_frontend_onnx",
     "export_batch_model_onnx",
     "export_classifier_onnx",
+    "export_classifier_frontend_onnx",
     "export_streaming_beatnet_onnx",
     "load_batch_frontend_artifact",
     "onnxruntime_available",

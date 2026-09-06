@@ -25,7 +25,7 @@ import numpy as np
 NATIVE_BATCH_FRONTEND_SCHEMA = "mir.native-batch-frontend/v1"
 NATIVE_BATCH_FRONTEND_ABI_VERSION = 1
 BATCH_FRONTEND_ONNX_OPSET_VERSION = 18
-SUPPORTED_BATCH_FRONTENDS = frozenset({"beast", "bocktcn", "spectnt"})
+SUPPORTED_BATCH_FRONTENDS = frozenset({"beast", "bocktcn", "spectnt", "mel", "mfcc"})
 _MODEL_NAME_ALIASES = {
     "bock_tcn": "bocktcn",
     "spec_tnt": "spectnt",
@@ -653,6 +653,10 @@ def _prepare_frontend(
     preprocessing_config: Mapping[str, Any] | None,
 ) -> _PreparedFrontend:
     model_family = _normalized_model_name(model_name)
+    if model_family in {"mel", "mfcc"}:
+        from .classifier_frontend import prepare_classifier_frontend
+
+        return prepare_classifier_frontend(model_family, preprocessing_config)
     if model_family == "bocktcn":
         return _bocktcn_frontend(preprocessing_config)
     if model_family == "beast":
@@ -810,6 +814,8 @@ def _export_prepared(
         "bocktcn": 2,
         "beast": 1,
         "spectnt": 3,
+        "mel": 3,
+        "mfcc": 3,
     }[prepared.model_family]
     try:
         with warnings.catch_warnings():
@@ -1076,6 +1082,17 @@ class OnnxBatchFrontendSession:
                 int(self.artifact.manifest["output_contract"]["feature_dim"]),
             )
         frames = samples // int(config["hop_length"]) + 1
+        if family in {"mel", "mfcc"}:
+            frames = (
+                int(config["window_samples"] or samples) // int(config["hop_length"])
+                + 1
+            )
+            return (
+                batch,
+                1,
+                int(self.artifact.manifest["output_contract"]["feature_dim"]),
+                frames,
+            )
         if family == "beast":
             return (
                 batch,
@@ -1097,7 +1114,7 @@ class OnnxBatchFrontendSession:
         if values.ndim == 1:
             values = values.reshape(1, -1)
         minimum = int(self.artifact.manifest["input_contract"]["minimum_samples"])
-        if values.ndim != 2 or values.shape[1] < minimum:
+        if values.ndim != 2 or values.shape[0] < 1 or values.shape[1] < minimum:
             raise ValueError(
                 "native batch frontend input must be [batch, samples] with at "
                 f"least {minimum} samples, got {values.shape}"
