@@ -36,7 +36,7 @@ def sha256(path):
 def source_snapshot():
     """Include tracked and untracked source; omit build output and credentials."""
     suffixes = {'.py', '.rs', '.c', '.cc', '.cpp', '.h', '.hpp', '.kt', '.kts',
-                '.toml', '.lock', '.yml', '.yaml', '.json', '.cmake', '.gradle', '.ini'}
+                '.toml', '.lock', '.yml', '.yaml', '.json', '.cmake', '.gradle', '.ini', '.sh'}
     result = {}
     for name in REPOSITORIES:
         repo = ROOT/name
@@ -93,11 +93,15 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
     add('native', 'workflows-clippy', ['cargo', 'clippy', '--locked', '--all-targets', '--', '-D', 'warnings'], desktop/'native-workflows')
     add('native', 'workflows-tests', ['cargo', 'test', '--locked', '--all-targets'], desktop/'native-workflows')
     add('native', 'causal-classifier-replay-build', ['cargo', 'build', '--locked', '--example', 'causal_classifier_replay'], desktop/'native-runtime')
+    add('native', 'feature-alignment-replay-build', ['cargo', 'build', '--locked', '--example', 'feature_alignment_replay'], desktop/'native-runtime')
     add('native', 'desktop-tests', ['cargo', 'test', '--locked', '--all-targets'], desktop/'desktop-rust')
     qt = desktop/'desktop-cpp'
     add('native', 'qt-configure', ['cmake', '-S', qt, '-B', qt/'build/ports-remediation', '-DCMAKE_BUILD_TYPE=Release'])
     add('native', 'qt-build', ['cmake', '--build', qt/'build/ports-remediation', '--parallel', '2'])
     add('native', 'qt-tests', ['ctest', '--test-dir', qt/'build/ports-remediation', '--output-on-failure'], extra={'QT_QPA_PLATFORM':'offscreen'})
+    node = ROOT/'mir-embedded-ai'
+    add('native', 'embedded-node-clippy', ['cargo', 'clippy', '--locked', '--all-targets', '--', '-D', 'warnings'], node/'native-node')
+    add('native', 'embedded-node-build', ['bash', node/'build-native-node.sh'], node)
 
     add('references', 'resampling', [py, dsp/'tools/resampling_parity.py', '--cpp-replay', dsp/'build/mir_resampler_replay',
         '--rust-replay', dsp/'rust/target/release/examples/resampler_replay', '--library', dsp/'build/libmir_dsp.so',
@@ -134,6 +138,7 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
         '--output', output/'classifiers', '--cpp-replay', replay])
     add('references', 'causal-classifier-source', [py, core/'tools/validation/check_native_causal_classifier.py', scratch/'causal-classifier'])
     add('references', 'promoted-causal-routing', [py, core/'tools/validation/check_native_promoted_routing.py', scratch/'promoted-routing'])
+    add('references', 'promoted-feature-alignment', [py, core/'tools/validation/check_native_feature_alignment.py', '--promoted-routing', scratch/'promoted-routing', '--output', scratch/'feature-alignment'])
     add('references', 'desktop-routing', [py, core/'tools/validation/check_native_desktop_routing.py',
         scratch/'causal-classifier/logspect-running_peak-22050.input.json', scratch/'desktop-routing'])
     add('references', 'desktop-dance-dispatch-export', [py, core/'tools/validation/export_desktop_dance_dispatch.py', scratch/'dance_dispatch.json'])
@@ -145,6 +150,7 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
     add('references', 'native-inferred-trials', [py, core/'tools/validation/check_native_trial_runtime.py', '--runtime-session', scratch/'desktop-routing/session.json', '--output', scratch/'inferred-trials'])
     add('references', 'native-runtime-binding', [py, core/'tools/validation/check_native_runtime_binding.py', '--classifier-replay', scratch/'promoted-routing/yamnet-fold-0/input.json', '--native-session', scratch/'desktop-routing/session.json', '--output', scratch/'runtime-binding'])
     add('references', 'input-label-freshness', [py, core/'tools/validation/export_native_input_names.py', '--output', desktop/'native-workflows/defaults/input_names.json', '--check'])
+    add('references', 'embedded-deployment', [py, node/'native-node/test/check_deployment.py', '--route-session', scratch/'desktop-routing/session.json', '--promoted-routing', scratch/'promoted-routing', '--output', scratch/'embedded-deployment'])
 
     add('android', 'android-jvm-and-apk', [android/'gradlew', '--no-daemon', ':app:testDebugUnitTest',
         ':haptic-common:testDebugUnitTest', ':wear:testDebugUnitTest', ':app:assembleDebug', ':app:assembleDebugAndroidTest',

@@ -86,6 +86,9 @@ def main():
         expected = _aligned_runtime_system_event(record, playback_started_ns=origin, hop_seconds=.02, stream_offset_seconds=offset).as_dict()
         request = {"operation": "align-runtime-event", "event": {"event": "beat", "frame_index": frame, "audio_seconds": runtime.event_audio_seconds, "queue_seconds": queue, "pipeline_seconds": work, "sent_ns": sent, "sequence": i, "route": "stock"}, "start_ns": origin, "offset_seconds": offset}
         compare(native(request), expected); checks += 1
+    for key, value in (("frame_index", 2**64-1), ("audio_seconds", 1e300), ("pipeline_seconds", 1e300)):
+        bad=copy.deepcopy(request);bad["event"][key]=value
+        native(bad,reject=True)
     rate = 22050; audio = (rng.standard_normal((int(rate*1.6), 2))*.05).astype(np.float32)
     path = out / "audio.wav"; sf.write(path, audio, rate, subtype="FLOAT")
     trial = TrialSpec("trial-playback", "no_assist", "fixture:001", "fixture", "Fixture", path, hashlib.sha256(path.read_bytes()).hexdigest(), "a"*64, 0.0, 1.6, (.45,.95,1.45), (.45,), 0).as_dict()
@@ -110,10 +113,12 @@ from pathlib import Path
 Path(os.environ["MIR_TEST_ARGV"]).write_text(json.dumps(sys.argv[1:]))
 now=time.monotonic_ns()
 print("paused -> streaming",file=sys.stderr,flush=True)
-print(f"stream time: now:{now} rate:1/22050 delay:441",file=sys.stderr,flush=True)
+line=f"stream time: now:{now} rate:1/22050 delay:441"
+if not os.environ.get("MIR_TEST_FINAL_CLOCK"):print(line,file=sys.stderr,flush=True)
 raw=sys.stdin.buffer.read()
 Path(os.environ["MIR_TEST_PLAYED_PCM"]).write_bytes(raw)
 time.sleep(len(raw)/4/2/22050+0.02)
+if os.environ.get("MIR_TEST_FINAL_CLOCK"):sys.stderr.write(line);sys.stderr.flush()
 ''')
     backend.chmod(0o700)
     pwrequest={**request,"output":asdict(output)}
@@ -124,6 +129,9 @@ time.sleep(len(raw)/4/2/22050+0.02)
     assert json.loads(argv.read_text())==source._pipewire_playback_command("pw-play",output,sample_rate=rate,channels=2)[1:]
     np.testing.assert_array_equal(np.fromfile(played,np.float32).reshape(-1,2),audio)
     playback_cases.append({"backend":"pipewire","samples_exact":True,"clock_basis":result["clock_basis"]})
+    final_clock=native(pwrequest,{**changes,"MIR_TEST_FINAL_CLOCK":"1"})
+    assert final_clock["clock_basis"]=="pipewire-stream-time"
+    playback_cases.append({"backend":"pipewire","final_unterminated_clock":True,"clock_basis":final_clock["clock_basis"]})
     # Real trial orchestration, private paced output and private input events.
     plan = {"schema": "mir.rhythm-assist-experiment-plan/v1", "plan_id": "plan-fixture", "participant_id": "fixture-not-human", "seed": 42, "fold": FoldContext(out, 0).as_dict(), "trials": [trial], "rt_tolerances_ms": [30,50,70,100,150]}
     trial_cases = []
@@ -173,7 +181,7 @@ time.sleep(len(raw)/4/2/22050+0.02)
     expected=analyze_tap_latency(calibration["tap_seconds"],calibration["measured_beats_seconds"])
     assert len(calibration["tap_seconds"])==2
     for key,value in asdict(expected).items():compare(calibration[key],value,f"calibration/{key}")
-    report = {"passed": True, "source_cases": checks, "playback_cases": playback_cases, "trial_cases": trial_cases, "failure_cases": failures, "cancel_under_one_second": True, "fixture_sha256": hashlib.sha256(fixture.read_bytes()).hexdigest(), "scope": "isolated host callback, input, trial and UDP integration; no physical devices accessed or acoustic latency measured"}
+    report = {"passed": True, "source_cases": checks, "playback_cases": playback_cases, "trial_cases": trial_cases, "failure_cases": failures, "invalid_event_clocks_rejected":3, "tap_calibration":{"input_events":len(calibration["tap_seconds"]),"source_scores_exact":True}, "cancel_under_one_second": True, "fixture_sha256": hashlib.sha256(fixture.read_bytes()).hexdigest(), "scope": "isolated host callback, input, trial and UDP integration; no physical devices accessed or acoustic latency measured"}
     (out/"report.json").write_text(json.dumps(report, indent=2)+"\n"); print(json.dumps(report, indent=2))
 
 
