@@ -37,6 +37,22 @@ def write_new(path: Path, value) -> None:
         handle.write('\n')
 
 
+def decoder_selection_contract(workspace: Path, model: dict, selector: str) -> dict:
+    """Use provenance, rather than the display name 'tuned', to classify selection."""
+    decoder = model['postprocessors'][selector]
+    if decoder['kind'] == 'stock':
+        return {'scope': 'untuned-stock'}
+    relative = Path('mir-core/mir_core/checkpoints/trained')/model['bundle_id']/\
+        'postprocessors'/selector/'source-manifest.json'
+    source = json.loads((workspace/relative).read_text())
+    policy = source['stage_config']['selection_policy']
+    assert source['stage_config']['test_used_for_selection'] is False
+    scope = {'fixed': 'fixed-parameters-no-score-selection',
+             'sweep_selection': 'shared-validation-sweep-not-nested-heldout'}.get(policy, 'selection-audit-required')
+    return {'scope': scope, 'selection_policy': policy, 'source_manifest': str(relative),
+            'source_manifest_sha256': digest(workspace/relative)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', type=Path, required=True)

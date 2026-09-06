@@ -19,7 +19,7 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from accuracy_inventory import digest, write_new
+from accuracy_inventory import decoder_selection_contract, digest, write_new
 from beatlab.models import extract_checkpoint_state_dict, normalize_state_dict_keys
 from mir_core.evaluation.metrics import compute_beat_metrics, compute_downbeat_metrics
 from mir_core.models.beatnet.crnn import BeatNetCRNN
@@ -90,6 +90,8 @@ def run_model(task):
     assert digest(android_path) == model_item['asset_sha256']
     android = ort.InferenceSession(str(android_path),ort_options,providers=['CPUExecutionProvider'])
     completed = 0
+    selection_contracts = {selector: decoder_selection_contract(Path(options['workspace']), model_item, selector)
+                           for selector in model_item['postprocessors']}
     for job in jobs:
         uid = job['track_uid'];track = catalogs[uid];stem = uid.replace(':','__')
         features = Path(options['features'])
@@ -101,6 +103,7 @@ def run_model(task):
             'feature_record_sha256':digest(features/(stem+'.json')),
             'annotation_sha256':track['annotation_hash'],
             'postprocessors_sha256':stable_hash(model_item['postprocessors']),
+            'decoder_selection_contracts_sha256':stable_hash(selection_contracts),
             'runner_sha256':options['runner_sha256'], 'reference_rng':'portable-splitmix64-v1',
             'decoder_reference_backend':options['reference_backend'],
             'metric_contract':'mir-core-declared-conventional-full-recording-70ms/v1'}
@@ -145,7 +148,7 @@ def run_model(task):
             arrays[selector+'_native_events'] = actual
             reference_scores,actual_scores = scores(reference,track),scores(actual,track)
             comparisons.append({'selector':selector,'method':decoder['method'],
-                'selection_scope':'shared-fold-tuned' if decoder['kind']=='tuned' else 'untuned-stock',
+                'selection_scope':selection_contracts[selector]['scope'],
                 'python_metrics':reference_scores,'native_metrics':actual_scores,
                 'metric_deltas':{key:actual_scores[key]-value for key,value in reference_scores.items()},
                 'event_stream_exact':np.array_equal(reference,actual),
@@ -189,7 +192,7 @@ def main():
     catalog_path = args.workspace/'mir-android-app/app/src/main/assets/models/catalog.json'
     assert digest(catalog_path) == inventory['catalog_sha256']
     catalog = json.loads(catalog_path.read_text())
-    options = {key:str(getattr(args,key)) for key in ('catalogs','features','output')}
+    options = {key:str(getattr(args,key)) for key in ('workspace','catalogs','features','output')}
     options.update(reference_backend=args.reference_backend,runner_sha256=digest(Path(__file__)))
     tasks=[]
     for model in catalog['beat_models']:
