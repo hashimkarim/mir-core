@@ -127,7 +127,7 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
     add('references', 'spectnt-model', [py, '-m', 'pytest', '-q', core/'tests/test_spectnt.py'])
     suites = [core/'tests/test_native_beatnet.py', core/'tests/test_precise_streaming.py', core/'tests/test_native_batch.py',
               core/'tests/test_native_classifier.py', core/'tests/test_native_legacy_bock.py', core/'tests/test_native_batch_frontend.py',
-              core/'tests/test_native_classifier_frontend.py',
+              core/'tests/test_native_classifier_waveform.py',
               core/'tools/validation/test_long_models.py', ROOT/'mir-train-hpc/tests/test_native_classifier_frontend.py']
     add('references', 'onnx-source-and-cpp-replay', [py, '-m', 'pytest', '-q', '--import-mode=importlib', '-p', 'port_validation_plugin', *suites],
         extra={'MIR_PORT_FIXTURES': str(onnx), 'MIR_CPP_REPLAY': str(replay)})

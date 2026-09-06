@@ -1,4 +1,8 @@
-"""Raw-waveform classifier ports must preserve the original feature contract."""
+"""Raw-waveform classifier ports must preserve the original feature contract.
+
+Keep this module's basename distinct from mir-train-hpc's frontend tests:
+pytest importlib mode resolves both repositories' tests package names together.
+"""
 
 from __future__ import annotations
 
