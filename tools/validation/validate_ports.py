@@ -89,6 +89,9 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
     add('native', 'engine-tests', ['cargo', 'test', '--locked', '--all-targets'], desktop/'native-engine')
     add('native', 'engine-actual-decoder', ['cargo', 'test', '--locked', '--all-targets', '--', '--ignored', '--skip', 'every_hot_route_matches_an_independent_uninterrupted_stage'], desktop/'native-engine')
     add('native', 'engine-build', ['cargo', 'build', '--locked'], desktop/'native-engine')
+    add('native', 'workflows-build', ['cargo', 'build', '--locked'], desktop/'native-workflows')
+    add('native', 'workflows-clippy', ['cargo', 'clippy', '--locked', '--all-targets', '--', '-D', 'warnings'], desktop/'native-workflows')
+    add('native', 'workflows-tests', ['cargo', 'test', '--locked', '--all-targets'], desktop/'native-workflows')
     add('native', 'causal-classifier-replay-build', ['cargo', 'build', '--locked', '--example', 'causal_classifier_replay'], desktop/'native-runtime')
     add('native', 'desktop-tests', ['cargo', 'test', '--locked', '--all-targets'], desktop/'desktop-rust')
     qt = desktop/'desktop-cpp'
@@ -135,6 +138,9 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
         scratch/'causal-classifier/logspect-running_peak-22050.input.json', scratch/'desktop-routing'])
     add('references', 'desktop-dance-dispatch-export', [py, core/'tools/validation/export_desktop_dance_dispatch.py', scratch/'dance_dispatch.json'])
     add('references', 'desktop-dance-dispatch-freshness', ['cmp', scratch/'dance_dispatch.json', desktop/'native-engine/fixtures/dance_dispatch.json'])
+    add('references', 'native-experiment-workflows', [py, core/'tools/validation/check_native_workflows.py', '--output', scratch/'experiment-workflows'])
+    add('references', 'native-device-workflows', [py, core/'tools/validation/check_native_devices.py', '--output', scratch/'device-workflows'])
+    add('references', 'input-label-freshness', [py, core/'tools/validation/export_native_input_names.py', '--output', desktop/'native-workflows/defaults/input_names.json', '--check'])
 
     add('android', 'android-jvm-and-apk', [android/'gradlew', '--no-daemon', ':app:testDebugUnitTest',
         ':haptic-common:testDebugUnitTest', ':wear:testDebugUnitTest', ':app:assembleDebug', ':app:assembleDebugAndroidTest',
