@@ -1,0 +1,13 @@
+[package]
+name = "mir-dsp"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Checked Rust ownership interface for MIR's shared native DSP"
+
+[dependencies]
+libloading = "0.8"
+
+[[example]]
+name = "resampler_replay"
+path = "examples/resampler_replay.rs"
