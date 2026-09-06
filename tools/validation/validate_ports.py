@@ -140,6 +140,10 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
     add('references', 'desktop-dance-dispatch-freshness', ['cmp', scratch/'dance_dispatch.json', desktop/'native-engine/fixtures/dance_dispatch.json'])
     add('references', 'native-experiment-workflows', [py, core/'tools/validation/check_native_workflows.py', '--output', scratch/'experiment-workflows'])
     add('references', 'native-device-workflows', [py, core/'tools/validation/check_native_devices.py', '--output', scratch/'device-workflows'])
+    add('references', 'native-playback-math', [py, core/'tools/validation/check_native_playback_math.py', '--output', scratch/'playback-math'])
+    add('references', 'native-playback-integration', [py, core/'tools/validation/check_native_playback.py', '--output', scratch/'playback-integration'])
+    add('references', 'native-inferred-trials', [py, core/'tools/validation/check_native_trial_runtime.py', '--runtime-session', scratch/'desktop-routing/session.json', '--output', scratch/'inferred-trials'])
+    add('references', 'native-runtime-binding', [py, core/'tools/validation/check_native_runtime_binding.py', '--classifier-replay', scratch/'promoted-routing/yamnet-fold-0/input.json', '--native-session', scratch/'desktop-routing/session.json', '--output', scratch/'runtime-binding'])
     add('references', 'input-label-freshness', [py, core/'tools/validation/export_native_input_names.py', '--output', desktop/'native-workflows/defaults/input_names.json', '--check'])
 
     add('android', 'android-jvm-and-apk', [android/'gradlew', '--no-daemon', ':app:testDebugUnitTest',
