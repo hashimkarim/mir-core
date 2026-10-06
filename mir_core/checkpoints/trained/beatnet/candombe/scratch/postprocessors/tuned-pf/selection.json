@@ -212,7 +212,7 @@
     }
   ],
   "method": "particle_filter",
-  "postprocessor_id": "tuned-particle-filter",
+  "postprocessor_id": "tuned-pf",
   "schema": "mir.per-fold-postprocessor-selection/v1",
   "selection_policy": "one_parameter_set_per_fold",
   "selection_scope": "single_fold_validation_per_fold",

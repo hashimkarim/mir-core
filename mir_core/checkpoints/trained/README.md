@@ -15,7 +15,7 @@ tuned choice for each of the three decoders.
 | --- | --- | --- |
 | Joint DBN | `stock-dbn` | `tuned-dbn` |
 | 1D state space | `stock-1d` | `tuned-1d` |
-| Particle filter | `stock-particle-filter` | `tuned-particle-filter` |
+| Particle filter | `stock-pf` | `tuned-pf` |
 
 Stock choices are the original parameters and are the same for every fold
 (`postprocessors/<id>/params.json`). Tuned choices hold one parameter file per
@@ -72,6 +72,13 @@ searches scored settings on stored features, whose frames are centred about
 specialist then announces beats too late in the running system. And a shared
 setting is chosen from the validation songs of all folds, which are test
 songs of other folds.
+
+The frozen particle-filter contract of the port
+(`mir_core.testing.particle_filter_contract`) covers the default parameter
+profile, which is `stock-pf`. The `tuned-pf` settings differ from that profile
+(for example in `lambda_b`, `lambda_d` and `ig_threshold`) and are not covered
+by its frozen cases; the ported particle filter runs them, but its agreement
+with the reference implementation is not established for them.
 
 The shared August settings (`dbn-hybrid-joint`,
 `1d-causal-activation-v2-hybrid-joint` and `particle-filter-fixed`) were

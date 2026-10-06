@@ -21,25 +21,25 @@ FOLD_COUNT = 5
 STOCK_POSTPROCESSOR_IDS = (
     "stock-1d",
     "stock-dbn",
-    "stock-particle-filter",
+    "stock-pf",
 )
 # Shared selections of the August searches. None is packaged any more; they
 # were archived on 6 October 2026 when every tuned postprocessor became per-fold.
 TUNED_POSTPROCESSOR_SOURCE_IDS = {
     "tuned-1d": "1d-causal-activation-v2-hybrid-joint",
     "tuned-dbn": "dbn-hybrid-joint",
-    "tuned-particle-filter": "particle-filter-fixed",
+    "tuned-pf": "particle-filter-fixed",
 }
 # Selected separately for every fold on that fold's validation songs.
 PER_FOLD_POSTPROCESSOR_SOURCE_IDS = {
     "tuned-1d": "1d-live-validation-rerank-per-fold",
     "tuned-dbn": "dbn-live-validation-rerank-per-fold",
-    "tuned-particle-filter": "particle-filter-live-validation-rerank-per-fold",
+    "tuned-pf": "particle-filter-live-validation-rerank-per-fold",
 }
 REQUIRED_TUNED_POSTPROCESSOR_IDS = {
     "tuned-1d",
     "tuned-dbn",
-    "tuned-particle-filter",
+    "tuned-pf",
 }
 DEFAULT_POSTPROCESSOR_ID = "tuned-dbn"
 STOCK_CATALOG_PATH = Path("beatnet/stock/baseline/postprocessors.json")

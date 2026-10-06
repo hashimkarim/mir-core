@@ -29,12 +29,12 @@ EXPECTED_BUNDLES = {
 STOCK_POSTPROCESSORS = {
     "stock-1d",
     "stock-dbn",
-    "stock-particle-filter",
+    "stock-pf",
 }
 REQUIRED_TUNED_POSTPROCESSORS = {
     "tuned-1d",
     "tuned-dbn",
-    "tuned-particle-filter",
+    "tuned-pf",
 }
 BEAT_BUNDLES = (
     ("latin_general", "scratch"),
@@ -48,7 +48,7 @@ BEAT_BUNDLES = (
 TUNED_METHODS = {
     "tuned-1d": "heydari_1d_state_space",
     "tuned-dbn": "dbn_downbeat",
-    "tuned-particle-filter": "particle_filter",
+    "tuned-pf": "particle_filter",
 }
 
 
@@ -96,7 +96,7 @@ def test_checkpoint_and_postprocessor_can_be_selected_independently() -> None:
         "beatnet", "candombe", "scratch", 0
     ).is_file()
     assert trained_postprocessor_path(
-        "beatnet", "candombe", "scratch", "tuned-particle-filter", fold_index=0
+        "beatnet", "candombe", "scratch", "tuned-pf", fold_index=0
     ).is_file()
     assert trained_postprocessor_path(
         "beatnet", "candombe", "scratch", "stock-dbn"

@@ -22,7 +22,7 @@ def main():
     p.add_argument('saved_run', type=Path)
     p.add_argument('output', type=Path)
     p.add_argument('--model-id', required=True)
-    p.add_argument('--selector', default='stock-particle-filter')
+    p.add_argument('--selector', default='stock-pf')
     p.add_argument('--postprocessor-library', required=True, type=Path)
     args = p.parse_args()
     os.environ['MIR_EMBEDDED_PP_HOST_LIBRARY'] = str(args.postprocessor_library.resolve())

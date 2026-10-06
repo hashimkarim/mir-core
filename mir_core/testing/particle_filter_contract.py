@@ -134,7 +134,10 @@ def _verify_packaged_profile():
 
     expected = effective({})
     directory = Path(mir_core.__file__).resolve().parent / "checkpoints/trained/beatnet"
-    paths = sorted(directory.glob("**/postprocessors/*particle-filter/params.json"))
+    # Matches the shared parameter files (stock-pf). The per-fold files of
+    # tuned-pf (fold_<n>.json) are not inspected here; their parameters differ
+    # from this profile and are not covered by the frozen contract cases.
+    paths = sorted(directory.glob("**/postprocessors/*-pf/params.json"))
     if not paths or any(
         effective(json.loads(path.read_text())) != expected for path in paths
     ):

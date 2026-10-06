@@ -46,7 +46,7 @@
     {
       "beats_per_bar": [],
       "down_particle_size": 250,
-      "id": "stock-particle-filter",
+      "id": "stock-pf",
       "ig_threshold": 0.4,
       "lambda_b": 60,
       "lambda_d": 0.1,
