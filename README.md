@@ -33,8 +33,7 @@ import mir_core
 ### Native inference
 
 BeatNet, BeatNet+, and explicitly selected MultiHeadBeatNet heads have a
-content-addressed recurrent ONNX export. The export contract also supports
-DanceBeatNet when its separately developed model is available. BockTCN, BEAST, SpecTNT, and
+content-addressed recurrent ONNX export. BockTCN, BEAST, SpecTNT, and
 all seven classifier architectures have parity-gated batch/classifier exports.
 The three batch audio frontends, EfficientAT, and YAMNet also have independent
 native artifacts at their explicit waveform boundaries.

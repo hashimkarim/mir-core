@@ -29,23 +29,13 @@ ONNX_OPSET_VERSION = 18
 EXPORTER_NAME = "torch.onnx.legacy.fp64-ordered-fp32-state-v1"
 
 SUPPORTED_STREAMING_MODELS = frozenset(
-    {"beatnet", "beatnet_plus", "dance_beatnet", "multihead_beatnet"}
+    {"beatnet", "beatnet_plus", "multihead_beatnet"}
 )
 _MODEL_NAME_ALIASES = {
-    "beatnet_dance": "dance_beatnet",
-    "dancebeatnet": "dance_beatnet",
     "multihead": "multihead_beatnet",
     "multi_head_beatnet": "multihead_beatnet",
 }
 _STANDARD_OUTPUT_NAMES = ("activations", "next_hidden", "next_cell")
-_DANCE_OUTPUT_NAMES = (
-    "activations",
-    "beats",
-    "downbeats",
-    "dancebeats",
-    "next_hidden",
-    "next_cell",
-)
 _PARITY_RTOL = 2.0e-5
 _PARITY_ATOL = 2.0e-6
 _PARITY_SEQUENCE_LENGTH = 12
@@ -141,27 +131,6 @@ def _deployment_model_config(
         config.pop("genre", None)
         config["genre_label"] = genre_label
         return config
-    if model_name != "dance_beatnet":
-        return config
-
-    tracking_target = getattr(model, "tracking_target", None)
-    tracking_target_value = getattr(tracking_target, "value", tracking_target)
-    if tracking_target_value not in {"beat", "dance"}:
-        raise ValueError(
-            "DanceBeatNet tracking_target must be either 'beat' or 'dance'"
-        )
-    configured_target = config.get("tracking_target")
-    if configured_target is not None:
-        configured_value = getattr(configured_target, "value", configured_target)
-        if str(configured_value) != str(tracking_target_value):
-            raise ValueError(
-                "model_config tracking_target does not match the loaded "
-                "DanceBeatNet model"
-            )
-    # ``tracking_target`` changes the primary graph output but is not present in
-    # a PyTorch state dict. Include the observed value even when an older caller
-    # omits it so two semantically different graphs cannot share a cache entry.
-    config["tracking_target"] = str(tracking_target_value)
     return config
 
 
@@ -292,10 +261,8 @@ def _export_graph(model: Any, model_name: str) -> tuple[Any, tuple[str, ...]]:
 
     if model_name in {"beatnet", "multihead_beatnet"}:
         output_layer_name = "linear"
-    elif model_name == "beatnet_plus":
-        output_layer_name = "output_linear"
     else:
-        output_layer_name = "dance_head"
+        output_layer_name = "output_linear"
     output_layer = getattr(model, output_layer_name, None)
     for name in ("conv1", "linear0", "lstm"):
         if getattr(model, name, None) is None:
@@ -319,28 +286,7 @@ def _export_graph(model: Any, model_name: str) -> tuple[Any, tuple[str, ...]]:
             ).to(torch.float32)
             return activations, next_hidden, next_cell
 
-    if model_name != "dance_beatnet":
-        return StreamingBeatNetGraph().eval(), _STANDARD_OUTPUT_NAMES
-
-    tracking_target = getattr(model, "tracking_target", None)
-    tracking_target_value = getattr(tracking_target, "value", tracking_target)
-    accent_index = 1 if tracking_target_value == "beat" else 2
-
-    class StreamingDanceBeatNetGraph(torch.nn.Module):
-        def __init__(self) -> None:
-            super().__init__()
-            self.step = PreciseRecurrentStep(model, output_layer)
-
-        def forward(self, features: Any, hidden: Any, cell: Any) -> tuple[Any, ...]:
-            logits, next_hidden, next_cell = self.step(features, hidden, cell)
-            probabilities = self.step.math.sigmoid(logits).to(torch.float32)
-            beats = probabilities[..., 0:1]
-            downbeats = probabilities[..., 1:2]
-            dancebeats = probabilities[..., 2:3]
-            activations = torch.cat((beats, probabilities[..., accent_index:accent_index+1]), dim=-1)
-            return activations, beats, downbeats, dancebeats, next_hidden, next_cell
-
-    return StreamingDanceBeatNetGraph().eval(), _DANCE_OUTPUT_NAMES
+    return StreamingBeatNetGraph().eval(), _STANDARD_OUTPUT_NAMES
 
 
 def build_streaming_step_graph(model: Any, model_name: str = "beatnet") -> Any:
@@ -639,27 +585,12 @@ def export_streaming_beatnet_onnx(
         checkpoint_sha256=checkpoint_digest,
         torch_version=str(torch.__version__),
     )
-    if normalized_name == "dance_beatnet":
-        tracking_target = str(deployment_config["tracking_target"])
-        accent_output = "downbeats" if tracking_target == "beat" else "dancebeats"
-        activation_definition = f"all_beats,{accent_output}"
-        output_contract = {
-            "primary_output": "activations",
-            "primary_channels": ["all_beats", accent_output],
-            "tracking_target": tracking_target,
-            "independent_sigmoid_heads": {
-                "all_beats": "beats",
-                "downbeats": "downbeats",
-                "dancebeats": "dancebeats",
-            },
-        }
-    else:
-        activation_definition = "all_beats,downbeats"
-        output_contract = {
-            "primary_output": "activations",
-            "primary_channels": ["all_beats", "downbeats"],
-            "tracking_target": "beat",
-        }
+    activation_definition = "all_beats,downbeats"
+    output_contract = {
+        "primary_output": "activations",
+        "primary_channels": ["all_beats", "downbeats"],
+        "tracking_target": "beat",
+    }
 
     manifest = {
         "schema": NATIVE_STREAMING_SCHEMA,
@@ -924,6 +855,7 @@ class OnnxBeatNetStreamingSession:
         *,
         intra_op_threads: int = 1,
     ) -> None:
+        _model_name(artifact.model_family)
         try:
             import onnxruntime as ort
         except ImportError as exc:
@@ -953,11 +885,7 @@ class OnnxBeatNetStreamingSession:
         )
         if output_names != manifest_output_names:
             raise ValueError(f"unexpected native model outputs: {output_names!r}")
-        expected_output_names = (
-            _DANCE_OUTPUT_NAMES
-            if artifact.model_family == "dance_beatnet"
-            else _STANDARD_OUTPUT_NAMES
-        )
+        expected_output_names = _STANDARD_OUTPUT_NAMES
         if output_names != expected_output_names:
             raise ValueError(
                 f"unsupported {artifact.model_family} output contract: {output_names!r}"
@@ -1018,13 +946,6 @@ class OnnxBeatNetStreamingSession:
                 f"native runtime returned unexpected activation shape {result.shape}"
             )
         results["activations"] = result[0]
-        if self.artifact.model_family == "dance_beatnet":
-            for head_name in ("beats", "downbeats", "dancebeats"):
-                if results[head_name].shape != (1,):
-                    raise RuntimeError(
-                        f"native runtime returned unexpected {head_name} shape "
-                        f"{results[head_name].shape}"
-                    )
         return results
 
     def infer(self, feature: np.ndarray) -> np.ndarray:

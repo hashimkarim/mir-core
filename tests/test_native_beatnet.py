@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from importlib import import_module
 from pathlib import Path
 
 import numpy as np
@@ -25,19 +24,6 @@ pytest.importorskip("onnxruntime")
 
 _PARITY_SCHEMA = "mir.native-streaming-parity-validation/v1"
 _PARITY_SEQUENCE_LENGTH = 12
-
-
-def _dance_model_class() -> type[torch.nn.Module]:
-    """Exercise optional DanceBeat models without depending on their branch."""
-
-    module_name = "mir_core.models.beatnet.dance"
-    try:
-        module = import_module(module_name)
-    except ModuleNotFoundError as exc:
-        if exc.name != module_name:
-            raise
-        pytest.skip("Optional DanceBeat model is not present in this checkout")
-    return module.DanceBeatNetCRNN
 
 
 def _checkpoint_digest(model: torch.nn.Module) -> str:
@@ -116,20 +102,6 @@ def _reference_frame(
             dim=-1,
         )
     return activations[0, 0].numpy()
-
-
-def _reference_dance_frame(
-    model: torch.nn.Module,
-    feature: torch.Tensor,
-) -> dict[str, np.ndarray]:
-    with torch.no_grad():
-        output = model(feature)
-    return {
-        "activations": output["event_activations"][0, 0].numpy(),
-        "beats": output["beats"][0, 0].numpy(),
-        "downbeats": output["downbeats"][0, 0].numpy(),
-        "dancebeats": output["dancebeats"][0, 0].numpy(),
-    }
 
 
 @pytest.mark.parametrize(
@@ -304,126 +276,6 @@ def test_native_multihead_requires_an_explicit_known_genre(tmp_path: Path) -> No
         )
 
 
-@pytest.mark.parametrize(
-    ("tracking_target", "accent_output"),
-    [("beat", "downbeats"), ("dance", "dancebeats")],
-)
-def test_native_dance_streaming_matches_every_head_and_recurrent_state(
-    tmp_path: Path,
-    tracking_target: str,
-    accent_output: str,
-) -> None:
-    torch.manual_seed(812)
-    model = _dance_model_class()(
-        input_dim=32,
-        hidden_dim=8,
-        num_layers=2,
-        tracking_target=tracking_target,
-    ).eval()
-    model.reset_hidden()
-    artifact = export_streaming_beatnet_onnx(
-        model,
-        tmp_path / f"dance-{tracking_target}.onnx",
-        model_name="beatnet_dance" if tracking_target == "beat" else "DanceBeatNet",
-        model_config={
-            "name": "dance_beatnet",
-            "input_dim": 32,
-            "hidden_dim": 8,
-            "num_layers": 2,
-            "tracking_target": tracking_target,
-        },
-        checkpoint_sha256=_checkpoint_digest(model),
-    )
-    _assert_current_parity_manifest(artifact)
-    native = OnnxBeatNetStreamingSession(artifact)
-
-    assert artifact.model_family == "dance_beatnet"
-    assert artifact.manifest["outputs"] == [
-        "activations",
-        "beats",
-        "downbeats",
-        "dancebeats",
-        "next_hidden",
-        "next_cell",
-    ]
-    assert artifact.manifest["output_contract"] == {
-        "primary_output": "activations",
-        "primary_channels": ["all_beats", accent_output],
-        "tracking_target": tracking_target,
-        "independent_sigmoid_heads": {
-            "all_beats": "beats",
-            "downbeats": "downbeats",
-            "dancebeats": "dancebeats",
-        },
-    }
-
-    for frame in torch.randn(16, 32):
-        feature = frame.reshape(1, 1, -1)
-        expected = _reference_dance_frame(model, feature)
-        actual = native.infer_outputs(frame.numpy())
-        assert actual.keys() == expected.keys()
-        for output_name in expected:
-            np.testing.assert_allclose(
-                actual[output_name],
-                expected[output_name],
-                rtol=2e-5,
-                atol=2e-6,
-            )
-
-    np.testing.assert_allclose(
-        native.hidden,
-        model.hidden.detach().numpy(),
-        rtol=2e-5,
-        atol=2e-6,
-    )
-    np.testing.assert_allclose(
-        native.cell,
-        model.cell.detach().numpy(),
-        rtol=2e-5,
-        atol=2e-6,
-    )
-
-
-def test_native_dance_default_deployment_geometry_matches_pytorch(
-    tmp_path: Path,
-) -> None:
-    torch.manual_seed(19)
-    model = _dance_model_class()().eval()
-    artifact = export_streaming_beatnet_onnx(
-        model,
-        tmp_path / "dance-default.onnx",
-        model_name="dance_beatnet",
-        model_config={
-            "name": "dance_beatnet",
-            "input_dim": 272,
-            "hidden_dim": 150,
-            "num_layers": 2,
-            "tracking_target": "dance",
-        },
-        checkpoint_sha256=_checkpoint_digest(model),
-    )
-    native = OnnxBeatNetStreamingSession(artifact)
-    frame = torch.linspace(-1.0, 1.0, 272)
-    expected = _reference_dance_frame(model, frame.reshape(1, 1, -1))
-    actual = native.infer_outputs(frame.numpy())
-
-    assert artifact.manifest["streaming_state"] == {
-        "batch_size": 1,
-        "time_steps": 1,
-        "input_dim": 272,
-        "hidden_dim": 150,
-        "num_layers": 2,
-        "dtype": "float32",
-    }
-    for output_name in expected:
-        np.testing.assert_allclose(
-            actual[output_name],
-            expected[output_name],
-            rtol=2e-5,
-            atol=2e-6,
-        )
-
-
 def test_native_artifact_cache_is_content_addressed_and_verified(
     tmp_path: Path,
 ) -> None:
@@ -494,96 +346,9 @@ def test_native_cache_rejects_missing_failed_or_stale_parity(
     _assert_current_parity_manifest(repaired)
 
 
-def test_native_dance_cache_verifies_hash_and_tracks_projection_semantics(
-    tmp_path: Path,
-) -> None:
-    torch.manual_seed(31)
-    dance_model = _dance_model_class()(
-        input_dim=32,
-        hidden_dim=8,
-        num_layers=1,
-        tracking_target="dance",
-    ).eval()
-    shared_config = {
-        "name": "dance_beatnet",
-        "input_dim": 32,
-        "hidden_dim": 8,
-        "num_layers": 1,
-    }
-    checkpoint_sha256 = _checkpoint_digest(dance_model)
-
-    exported = ensure_streaming_beatnet_onnx(
-        dance_model,
-        model_name="dance_beatnet",
-        model_config=shared_config,
-        checkpoint_sha256=checkpoint_sha256,
-        cache_root=tmp_path,
-    )
-    reused = ensure_streaming_beatnet_onnx(
-        dance_model,
-        model_name="dance_beatnet",
-        model_config=shared_config,
-        checkpoint_sha256=checkpoint_sha256,
-        cache_root=tmp_path,
-    )
-    assert reused.cache_hit is True
-    assert reused.model_path == exported.model_path
-
-    reused.model_path.write_bytes(reused.model_path.read_bytes() + b"corrupt")
-    repaired = ensure_streaming_beatnet_onnx(
-        dance_model,
-        model_name="dance_beatnet",
-        model_config=shared_config,
-        checkpoint_sha256=checkpoint_sha256,
-        cache_root=tmp_path,
-    )
-    assert repaired.cache_hit is False
-    assert (
-        repaired.manifest["onnx"]["sha256"]
-        == hashlib.sha256(repaired.model_path.read_bytes()).hexdigest()
-    )
-
-    beat_model = _dance_model_class()(
-        input_dim=32,
-        hidden_dim=8,
-        num_layers=1,
-        tracking_target="beat",
-    ).eval()
-    beat_model.load_state_dict(dance_model.state_dict())
-    beat_artifact = ensure_streaming_beatnet_onnx(
-        beat_model,
-        model_name="dance_beatnet",
-        model_config=shared_config,
-        checkpoint_sha256=checkpoint_sha256,
-        cache_root=tmp_path,
-    )
-    assert beat_artifact.model_path != repaired.model_path
-    assert beat_artifact.manifest["output_contract"]["tracking_target"] == "beat"
-
-
-def test_native_dance_rejects_mismatched_tracking_target_config(
-    tmp_path: Path,
-) -> None:
-    model = _dance_model_class()(
-        input_dim=32,
-        hidden_dim=8,
-        num_layers=1,
-        tracking_target="dance",
-    ).eval()
-
-    with pytest.raises(ValueError, match="tracking_target does not match"):
-        export_streaming_beatnet_onnx(
-            model,
-            tmp_path / "mismatched-target.onnx",
-            model_name="dance_beatnet",
-            model_config={"tracking_target": "beat"},
-            checkpoint_sha256=_checkpoint_digest(model),
-        )
-
-
 @pytest.mark.parametrize(
     ("model_name", "perturbed_output"),
-    [("beatnet", "next_cell"), ("dance_beatnet", "dancebeats")],
+    [("beatnet", "next_cell")],
 )
 def test_streaming_export_rejects_and_removes_perturbed_graph(
     tmp_path: Path,
@@ -592,15 +357,7 @@ def test_streaming_export_rejects_and_removes_perturbed_graph(
     perturbed_output: str,
 ) -> None:
     torch.manual_seed(991)
-    if model_name == "dance_beatnet":
-        model: torch.nn.Module = _dance_model_class()(
-            input_dim=32,
-            hidden_dim=8,
-            num_layers=1,
-            tracking_target="dance",
-        ).eval()
-    else:
-        model = BeatNetCRNN(input_dim=32, hidden_dim=8, num_layers=1).eval()
+    model = BeatNetCRNN(input_dim=32, hidden_dim=8, num_layers=1).eval()
     real_export = torch.onnx.export
 
     def export_then_perturb(*args: object, **kwargs: object) -> None:
@@ -623,7 +380,6 @@ def test_streaming_export_rejects_and_removes_perturbed_graph(
                 "input_dim": 32,
                 "hidden_dim": 8,
                 "num_layers": 1,
-                "tracking_target": "dance",
             },
             checkpoint_sha256=_checkpoint_digest(model),
         )
@@ -652,28 +408,6 @@ def test_native_session_reset_restores_initial_recurrent_result(tmp_path: Path) 
     np.testing.assert_array_equal(native.infer(frame), first)
 
 
-def test_native_dance_session_reset_restores_every_head(tmp_path: Path) -> None:
-    torch.manual_seed(73)
-    model = _dance_model_class()(input_dim=32, hidden_dim=8, num_layers=1).eval()
-    frame = np.linspace(-1.0, 1.0, 32, dtype=np.float32)
-    artifact = export_streaming_beatnet_onnx(
-        model,
-        tmp_path / "dance-reset.onnx",
-        model_name="dance_beatnet",
-        model_config={"name": "dance_beatnet", "input_dim": 32},
-        checkpoint_sha256=_checkpoint_digest(model),
-    )
-    native = OnnxBeatNetStreamingSession(artifact)
-
-    first = native.infer_outputs(frame)
-    native.infer_outputs(frame)
-    native.reset_hidden()
-    reset = native.infer_outputs(frame)
-
-    for output_name in first:
-        np.testing.assert_array_equal(reset[output_name], first[output_name])
-
-
 def test_auto_backend_prefers_native_cpu_but_preserves_explicit_cuda() -> None:
     assert resolve_streaming_backend("auto", device="auto") == "onnxruntime"
     assert resolve_streaming_backend("auto", device="cpu") == "onnxruntime"
@@ -684,3 +418,19 @@ def test_auto_backend_prefers_native_cpu_but_preserves_explicit_cuda() -> None:
 def test_explicit_native_cuda_is_rejected_until_cuda_parity_gate_exists() -> None:
     with pytest.raises(ValueError, match="CPU-only"):
         resolve_streaming_backend("onnxruntime", device="cuda")
+
+
+@pytest.mark.parametrize("model_name", ["dance_beatnet", "beatnet_dance", "DanceBeatNet"])
+def test_archived_model_cannot_be_exported_or_loaded(tmp_path: Path, model_name: str) -> None:
+    from mir_core.native.beatnet import NativeModelArtifact, build_streaming_step_graph
+
+    with pytest.raises(ValueError, match="does not support"):
+        build_streaming_step_graph(object(), model_name)
+    artifact = NativeModelArtifact(
+        model_path=tmp_path / "archived.onnx",
+        manifest_path=tmp_path / "archived.onnx.json",
+        manifest={"model_family": model_name},
+        cache_hit=True,
+    )
+    with pytest.raises(ValueError, match="does not support"):
+        OnnxBeatNetStreamingSession(artifact)

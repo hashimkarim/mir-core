@@ -15,17 +15,11 @@ release requirement.
 
 ## Implemented coverage
 
-DanceBeatNet support below describes the optional export contract. Its Python
-model is developed on a separate branch and is not required to use these native
-exports; Dance-specific model tests skip when that module is unavailable.
-
-BeatNet, BeatNet+, DanceBeatNet, and a selected MultiHeadBeatNet genre head now
+BeatNet, BeatNet+, and a selected MultiHeadBeatNet genre head now
 export one causal feature frame per graph invocation. The LSTM hidden and cell
 tensors are explicit inputs and outputs. BeatNet graphs return canonical
 `[all_beats, downbeats]` activations, independent of the training model's
-three-class tensor layout. DanceBeatNet also returns individually named
-`beats`, `downbeats`, and `dancebeats` sigmoid heads; its canonical two-channel
-output uses the configured beat or dance accent target. MultiHead export
+three-class tensor layout. MultiHead export
 requires an explicit genre label and hashes that selection into the artifact.
 A content-addressed manifest binds every graph to the source checkpoint hash,
 normalized model configuration, export ABI, Torch exporter version, ONNX hash,
@@ -60,8 +54,8 @@ the intended route count on the target device before making latency claims.
 
 Streaming exports are accepted only after a deterministic 12-frame replay
 matches eager PyTorch execution of the deployment graph on CPU. The gate advances PyTorch and ONNX Runtime hidden/cell
-states independently and checks canonical activations, both recurrent outputs,
-and every DanceBeatNet named head on every frame. Its versioned successful
+states independently and checks canonical activations and both recurrent outputs
+on every frame. Its versioned successful
 record is bound to the ONNX digest in the manifest. Python cache reuse and the
 Rust loader both reject missing, failed, stale, incomplete, or over-tolerance
 parity records; a failed export removes the candidate graph and manifest.
@@ -135,7 +129,6 @@ audio processing, and automatic fallback remains Python-only and startup-only.
 | --- | --- | --- |
 | BeatNet | Stateful causal desktop model | Streaming ONNX plus Rust audio/frontend/state host implemented |
 | BeatNet+ | Stateful causal desktop model | Streaming ONNX plus Rust audio/frontend/state host implemented |
-| DanceBeatNet | Stateful model with nested beat/downbeat/dancebeat heads | Streaming ONNX/Rust path implemented; promoted full-track gate awaits a trained artifact |
 | MultiHeadBeatNet | Shared convolution with genre-specific recurrent heads | Explicitly selected, hash-bound genre-head streaming export implemented |
 | BockTCN | Batch/evaluation path; no faithful desktop stream runner | Batch ONNX implemented with dynamic time; causal receptive-field cache still needed |
 | BEAST | Batch transformer plus experimental streaming layers | Batch ONNX implemented with dynamic batch and fixed context/time geometry; short-sequence branch remains unsupported |
