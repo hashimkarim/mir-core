@@ -8,25 +8,28 @@ stored as:
 <model-family>/<target>/<condition>/checkpoints/seed_42_fold_<fold>.pt
 ```
 
-Beat-tracking bundles attach both the original stock online postprocessors and
-every completed tuned causal candidate under
-`postprocessors/<candidate>/params.json`. Stock choices use `stock-*` names;
-tuned choices use matching `tuned-*` names. The public id pattern is
-`<kind>-<method>[-<variant>]`; historical experiment ids remain in each tuned
-record as `source_id` provenance. Classifier bundles have no beat postprocessor
-because their causal routing policy is embedded in each checkpoint.
+Every beat-tracking bundle attaches six online postprocessors: a stock and a
+tuned choice for each of the three decoders.
 
-The stable method ids are `stock-1d`/`tuned-1d`,
-`stock-dbn`/`tuned-dbn`, and
-`stock-particle-filter`/`tuned-particle-filter`. `tuned-1d` is present only for
-bundles with the completed immediate causal-activation candidate; the older
-12-frame past-snap candidate is not packaged as a runnable tuned option.
+| Decoder | Stock | Tuned |
+| --- | --- | --- |
+| Joint DBN | `stock-dbn` | `tuned-dbn` |
+| 1D state space | `stock-1d` | `tuned-1d` |
+| Particle filter | `stock-particle-filter` | `tuned-particle-filter` |
 
-All bundles are deliberately marked `candidate`. Model and postprocessor
-selection remains a separate scientific decision; the `default_postprocessor`
-is only a convenient runnable default for validation smoke tests.
+Stock choices are the original parameters and are the same for every fold
+(`postprocessors/<id>/params.json`). Tuned choices hold one parameter file per
+fold (`postprocessors/<id>/fold_<fold>.json`), each selected on that fold's
+validation songs only, so a test song never influences the setting it is
+evaluated with. `selection.json` in the same directory records the selected
+parameters and validation scores of every fold, and `source-manifest.json` the
+procedure. Classifier bundles have no beat postprocessor because their causal
+routing policy is embedded in each checkpoint.
 
-Use the stable Python API instead of constructing paths:
+All bundles are deliberately marked `candidate`. `default_postprocessor` is
+`tuned-dbn` for every beat-tracking bundle.
+
+Use the stable Python API instead of constructing paths, and pass the fold:
 
 ```python
 from mir_core.checkpoints import (
@@ -38,7 +41,7 @@ checkpoint = trained_checkpoint_path(
     "beatnet", "candombe", "scratch", fold_index=2
 )
 tuned_postprocessor = trained_postprocessor_path(
-    "beatnet", "candombe", "scratch", "tuned-dbn"
+    "beatnet", "candombe", "scratch", "tuned-dbn", fold_index=2
 )
 stock_postprocessor = trained_postprocessor_path(
     "beatnet", "candombe", "scratch", "stock-dbn"
@@ -48,40 +51,32 @@ classifier = trained_checkpoint_path(
 )
 ```
 
-`TrainedModelBundle.postprocessors` contains both groups, while
-`stock_postprocessors` and `tuned_postprocessors` expose them separately.
-Choose the corresponding `stock-*` name explicitly to reproduce the original
-behavior.
+A tuned postprocessor requires `fold_index` and raises without it. A stock one
+accepts and ignores it, so fold-aware callers can always pass it.
+`TrainedModelBundle.postprocessor_is_per_fold()` tells the two apart;
+`postprocessors`, `stock_postprocessors` and `tuned_postprocessors` list them.
+The legacy combined stock catalog remains available through
+`beatnet_stock_postprocessor_selection_path()`.
 
-## Per-fold DBN settings
+## How the tuned settings were selected
 
-The four bundles of the routed system (`latin_general/scratch`,
-`brid/finetune_latin_general`, `candombe/scratch` and
-`salsa/finetune_latin_general`) also carry `tuned-dbn-per-fold`, which is
-their default. It holds one joint-DBN parameter file per fold
-(`postprocessors/tuned-dbn-per-fold/fold_<fold>.json`), selected on that
-fold's validation songs only, so a test song never influences the setting it
-is evaluated with. Pass the fold:
+On 6 October 2026, every setting that the August searches had tried for a
+decoder, and that the ported decoder can run, was scored on live scores: each
+fold's model on that fold's validation songs, through the uncached streaming
+frontend of the ported engine. The setting with the highest joint RT-F1 at
+70 ms was selected per fold.
 
-```python
-parameters = trained_postprocessor_path(
-    "beatnet", "salsa", "finetune_latin_general", fold_index=2
-)
-```
+This replaced the shared tuned settings of August, for two reasons. Those
+searches scored settings on stored features, whose frames are centred about
+24 ms later than those of the live frontend; the setting chosen for the salsa
+specialist then announces beats too late in the running system. And a shared
+setting is chosen from the validation songs of all folds, which are test
+songs of other folds.
 
-Calling without `fold_index` raises for a per-fold postprocessor; for a
-shared one, `fold_index` is accepted and ignored, so fold-aware callers can
-always pass it. `TrainedModelBundle.postprocessor_is_per_fold()` tells the two
-apart, and `selection.json` records the validation scores of every fold.
-
-The settings were selected on 6 October 2026 by scoring the settings that the
-August searches had tried on live scores (the uncached streaming frontend of
-the ported engine) and taking the highest joint RT-F1 at 70 ms per fold. The
-August searches used stored features, whose frames are centred about 24 ms
-later than the live ones. `tuned-dbn` remains the shared August selection, as
-used by the system comparisons of August and 1 October 2026. The other three
-bundles keep `tuned-dbn` as their default. The legacy combined stock catalog remains
-available through `beatnet_stock_postprocessor_selection_path()`.
+The shared August settings (`dbn-hybrid-joint`,
+`1d-causal-activation-v2-hybrid-joint` and `particle-filter-fixed`) were
+archived outside the repository and remain in the history up to commit
+`d33adde`. The system comparisons of August and of 1 October 2026 used them.
 
 Every file is byte-bound by its bundle manifest. All current bundles use split
 contract `e2e-537f350dbaf7e925`; consumers must select the same fold before

@@ -53,7 +53,7 @@
     }
   ],
   "condition": "finetune_latin_general",
-  "default_postprocessor": "tuned-dbn-per-fold",
+  "default_postprocessor": "tuned-dbn",
   "fold_count": 5,
   "lifecycle": "candidate",
   "model": {
@@ -136,110 +136,157 @@
     },
     "tuned-1d": {
       "causal": true,
+      "fold_parameters": [
+        {
+          "fold_index": 0,
+          "path": "postprocessors/tuned-1d/fold_0.json",
+          "sha256": "a0c1e56e4e20eaf8e149ef68a7b5bb92c48fe5436310c1fafadb0f996b9edd1d",
+          "size_bytes": 604
+        },
+        {
+          "fold_index": 1,
+          "path": "postprocessors/tuned-1d/fold_1.json",
+          "sha256": "4f0570298c53a81f05b2e45915178a10071249cb8edf330b6ba1a51ae778b482",
+          "size_bytes": 605
+        },
+        {
+          "fold_index": 2,
+          "path": "postprocessors/tuned-1d/fold_2.json",
+          "sha256": "dfe23b5b315c0c4b67b0764db5770993304a987ec485a5ca433f619852e8db7c",
+          "size_bytes": 604
+        },
+        {
+          "fold_index": 3,
+          "path": "postprocessors/tuned-1d/fold_3.json",
+          "sha256": "74dfc6574c26e9505079eae189f3ac8466c3716c6f73847c0515c834a45baa8b",
+          "size_bytes": 604
+        },
+        {
+          "fold_index": 4,
+          "path": "postprocessors/tuned-1d/fold_4.json",
+          "sha256": "346bf1635da3eb7f11c38eadfd3e81a3e6ee034e48f994525d605c9c94151cbc",
+          "size_bytes": 606
+        }
+      ],
       "id": "tuned-1d",
       "kind": "tuned",
       "method": "heydari_1d_state_space",
       "online_contract_version": 4,
-      "path": "postprocessors/tuned-1d/params.json",
-      "selection_hash": "sel-0051e84b80a3",
+      "path": "postprocessors/tuned-1d/selection.json",
+      "selection_hash": "sel-072c6c3a3c78",
+      "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "2165cde459b4212fcfa085280d48b3d72203ec476703963af92da67059b6178b",
-      "size_bytes": 604,
-      "source_id": "1d-causal-activation-v2-hybrid-joint",
+      "sha256": "4c6d8c5b683bf9e8147671becf7c380c0a5da5bebe9f142fa013b59f0632d15d",
+      "size_bytes": 7475,
+      "source_id": "1d-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-1d/source-manifest.json",
-        "sha256": "6cc7650d793fd0078519ba387ed176e16482cafb8822d27dd3174e25e63908da",
-        "size_bytes": 7339
+        "sha256": "f9709544736897661f531161d2f759818deaeae8a2f712902a69a952aec69ece",
+        "size_bytes": 2489
       },
       "test_used_for_selection": false
     },
     "tuned-dbn": {
       "causal": true,
-      "id": "tuned-dbn",
-      "kind": "tuned",
-      "method": "dbn_downbeat",
-      "online_contract_version": 3,
-      "path": "postprocessors/tuned-dbn/params.json",
-      "selection_hash": "sel-3f47b1a184b4",
-      "selection_split": "validation",
-      "sha256": "9eb6fd662388a95b9588388678cec20db8b96ad456b5819e6ffb90ceae06df18",
-      "size_bytes": 287,
-      "source_id": "dbn-hybrid-joint",
-      "source_manifest": {
-        "path": "postprocessors/tuned-dbn/source-manifest.json",
-        "sha256": "a5cbfb91aff17c4652b56d21b48c4c65f3e133cc5b329c8bd8702f367907b4c1",
-        "size_bytes": 6952
-      },
-      "test_used_for_selection": false
-    },
-    "tuned-dbn-per-fold": {
-      "causal": true,
       "fold_parameters": [
         {
           "fold_index": 0,
-          "path": "postprocessors/tuned-dbn-per-fold/fold_0.json",
+          "path": "postprocessors/tuned-dbn/fold_0.json",
           "sha256": "8bdac1f4fd862f3f04fcfb8c07ceb0299e216ab9a721cd6857f6dfa3850f11db",
           "size_bytes": 286
         },
         {
           "fold_index": 1,
-          "path": "postprocessors/tuned-dbn-per-fold/fold_1.json",
+          "path": "postprocessors/tuned-dbn/fold_1.json",
           "sha256": "8bdac1f4fd862f3f04fcfb8c07ceb0299e216ab9a721cd6857f6dfa3850f11db",
           "size_bytes": 286
         },
         {
           "fold_index": 2,
-          "path": "postprocessors/tuned-dbn-per-fold/fold_2.json",
-          "sha256": "8bdac1f4fd862f3f04fcfb8c07ceb0299e216ab9a721cd6857f6dfa3850f11db",
-          "size_bytes": 286
+          "path": "postprocessors/tuned-dbn/fold_2.json",
+          "sha256": "411246a46e41a550392e793f05fa1473cb87042350f5bd433cfc56848b882bd0",
+          "size_bytes": 287
         },
         {
           "fold_index": 3,
-          "path": "postprocessors/tuned-dbn-per-fold/fold_3.json",
+          "path": "postprocessors/tuned-dbn/fold_3.json",
           "sha256": "105fb10ede07e706244574b3336dfe7bc9cb76ba1a67d76783afed678265d4fd",
           "size_bytes": 286
         },
         {
           "fold_index": 4,
-          "path": "postprocessors/tuned-dbn-per-fold/fold_4.json",
+          "path": "postprocessors/tuned-dbn/fold_4.json",
           "sha256": "105fb10ede07e706244574b3336dfe7bc9cb76ba1a67d76783afed678265d4fd",
           "size_bytes": 286
         }
       ],
-      "id": "tuned-dbn-per-fold",
+      "id": "tuned-dbn",
       "kind": "tuned",
       "method": "dbn_downbeat",
       "online_contract_version": 3,
-      "path": "postprocessors/tuned-dbn-per-fold/selection.json",
-      "selection_hash": "sel-874e959a4391",
+      "path": "postprocessors/tuned-dbn/selection.json",
+      "selection_hash": "sel-ef92c04f8525",
       "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "744c114c6fa096905496e7d0a927367e1f031c24deb879f86d96767be41f2b08",
-      "size_bytes": 4859,
+      "sha256": "b7b1b83caf4ab16624e8a8c4b4099ec8541581a5498723f001d977174dfc4c13",
+      "size_bytes": 5687,
       "source_id": "dbn-live-validation-rerank-per-fold",
       "source_manifest": {
-        "path": "postprocessors/tuned-dbn-per-fold/source-manifest.json",
-        "sha256": "c1663b1370c0ee05bb336fa9dedf44e12fec3df0774ff41cb407f2c0d00895de",
-        "size_bytes": 2230
+        "path": "postprocessors/tuned-dbn/source-manifest.json",
+        "sha256": "eba82b6777352e008471e0c0622b1bcfaf0af3faf368b10f97d4dcd2fdb84530",
+        "size_bytes": 2490
       },
       "test_used_for_selection": false
     },
     "tuned-particle-filter": {
       "causal": true,
+      "fold_parameters": [
+        {
+          "fold_index": 0,
+          "path": "postprocessors/tuned-particle-filter/fold_0.json",
+          "sha256": "ceb94457e89ba8b20784256c8ec6f13aa38b148c3de97173bcb272324fd8ebfb",
+          "size_bytes": 646
+        },
+        {
+          "fold_index": 1,
+          "path": "postprocessors/tuned-particle-filter/fold_1.json",
+          "sha256": "325dcc5c1c44061bbad20d840ad011711677ee5d7dd6fdb41b5b7ea3782dd4f8",
+          "size_bytes": 647
+        },
+        {
+          "fold_index": 2,
+          "path": "postprocessors/tuned-particle-filter/fold_2.json",
+          "sha256": "ceb94457e89ba8b20784256c8ec6f13aa38b148c3de97173bcb272324fd8ebfb",
+          "size_bytes": 646
+        },
+        {
+          "fold_index": 3,
+          "path": "postprocessors/tuned-particle-filter/fold_3.json",
+          "sha256": "325dcc5c1c44061bbad20d840ad011711677ee5d7dd6fdb41b5b7ea3782dd4f8",
+          "size_bytes": 647
+        },
+        {
+          "fold_index": 4,
+          "path": "postprocessors/tuned-particle-filter/fold_4.json",
+          "sha256": "3af4870b6df80c799d3788a099fdd0e9918e3abbfcfde1eef71811d466d69dda",
+          "size_bytes": 646
+        }
+      ],
       "id": "tuned-particle-filter",
       "kind": "tuned",
       "method": "particle_filter",
       "online_contract_version": 3,
-      "path": "postprocessors/tuned-particle-filter/params.json",
-      "selection_hash": "sel-f5176e1fce90",
+      "path": "postprocessors/tuned-particle-filter/selection.json",
+      "selection_hash": "sel-637df93bbe9a",
+      "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "b94ddb2e38318b6bce60696e16f5888a8f3fcc36aae0e379b56d223e13e2721c",
-      "size_bytes": 34,
-      "source_id": "particle-filter-fixed",
+      "sha256": "6946ce2eaa43dcd00c6cce28933ce15797fbef2cfdd36dc8bd44b65fb96759b4",
+      "size_bytes": 7698,
+      "source_id": "particle-filter-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-particle-filter/source-manifest.json",
-        "sha256": "f55fe455ff2c0559c98c94dc5c910860c3293d72f0af13156936b927e5da2481",
-        "size_bytes": 6661
+        "sha256": "5db781986823ae021bf3d42ee744e453e34e069c988878a09657d594d6eea0d0",
+        "size_bytes": 2502
       },
       "test_used_for_selection": false
     }

@@ -23,6 +23,8 @@ STOCK_POSTPROCESSOR_IDS = (
     "stock-dbn",
     "stock-particle-filter",
 )
+# Shared selections of the August searches. None is packaged any more; they
+# were archived on 6 October 2026 when every tuned postprocessor became per-fold.
 TUNED_POSTPROCESSOR_SOURCE_IDS = {
     "tuned-1d": "1d-causal-activation-v2-hybrid-joint",
     "tuned-dbn": "dbn-hybrid-joint",
@@ -30,10 +32,12 @@ TUNED_POSTPROCESSOR_SOURCE_IDS = {
 }
 # Selected separately for every fold on that fold's validation songs.
 PER_FOLD_POSTPROCESSOR_SOURCE_IDS = {
-    "tuned-dbn-per-fold": "dbn-live-validation-rerank-per-fold",
+    "tuned-1d": "1d-live-validation-rerank-per-fold",
+    "tuned-dbn": "dbn-live-validation-rerank-per-fold",
+    "tuned-particle-filter": "particle-filter-live-validation-rerank-per-fold",
 }
-PER_FOLD_DEFAULT_POSTPROCESSOR_ID = "tuned-dbn-per-fold"
 REQUIRED_TUNED_POSTPROCESSOR_IDS = {
+    "tuned-1d",
     "tuned-dbn",
     "tuned-particle-filter",
 }
@@ -480,11 +484,7 @@ def build_manifest(
         "checkpoints": checkpoints,
         "postprocessors": postprocessors,
         "default_postprocessor": (
-            None
-            if source.task != "beat_tracking"
-            else PER_FOLD_DEFAULT_POSTPROCESSOR_ID
-            if PER_FOLD_DEFAULT_POSTPROCESSOR_ID in postprocessors
-            else DEFAULT_POSTPROCESSOR_ID
+            DEFAULT_POSTPROCESSOR_ID if source.task == "beat_tracking" else None
         ),
     }
     return root / "manifest.json", manifest

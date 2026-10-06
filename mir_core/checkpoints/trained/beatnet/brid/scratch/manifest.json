@@ -123,41 +123,159 @@
       },
       "test_used_for_selection": false
     },
+    "tuned-1d": {
+      "causal": true,
+      "fold_parameters": [
+        {
+          "fold_index": 0,
+          "path": "postprocessors/tuned-1d/fold_0.json",
+          "sha256": "50d7a120c9cc0ba61a5cef85de10f04b0cb65b1c82d573565ce2ee4784027c6f",
+          "size_bytes": 605
+        },
+        {
+          "fold_index": 1,
+          "path": "postprocessors/tuned-1d/fold_1.json",
+          "sha256": "5460ae5d6c765d3345f0955e700f94c15fbb62a7639ffbaa48f6485ba8a62c28",
+          "size_bytes": 605
+        },
+        {
+          "fold_index": 2,
+          "path": "postprocessors/tuned-1d/fold_2.json",
+          "sha256": "d9f5eecfa84be4e13f866db42e2a74abe72a47249ea289bdbe6930428a479ed7",
+          "size_bytes": 605
+        },
+        {
+          "fold_index": 3,
+          "path": "postprocessors/tuned-1d/fold_3.json",
+          "sha256": "c2159b4951938a6b40a243c684af69367ba99a1a0814dfd0c7921466ce44bc78",
+          "size_bytes": 604
+        },
+        {
+          "fold_index": 4,
+          "path": "postprocessors/tuned-1d/fold_4.json",
+          "sha256": "f385ff5c1192a8901e4eae8053062c5f26337ab260a3de84a0fa22f9555e22a2",
+          "size_bytes": 607
+        }
+      ],
+      "id": "tuned-1d",
+      "kind": "tuned",
+      "method": "heydari_1d_state_space",
+      "online_contract_version": 4,
+      "path": "postprocessors/tuned-1d/selection.json",
+      "selection_hash": "sel-9bafa9bea9d0",
+      "selection_scope": "per_fold",
+      "selection_split": "validation",
+      "sha256": "bfcbde29e02db71ffb4d33c37f440ea57d88de319af0b65476878f55f0f59358",
+      "size_bytes": 7436,
+      "source_id": "1d-live-validation-rerank-per-fold",
+      "source_manifest": {
+        "path": "postprocessors/tuned-1d/source-manifest.json",
+        "sha256": "f14a8d08b8611626b4893172762e23f96a469594cd7dab1f644bbabbe8e8221e",
+        "size_bytes": 2489
+      },
+      "test_used_for_selection": false
+    },
     "tuned-dbn": {
       "causal": true,
+      "fold_parameters": [
+        {
+          "fold_index": 0,
+          "path": "postprocessors/tuned-dbn/fold_0.json",
+          "sha256": "2ddd3a87504def5110988fc3b2dfb4f0566c9a73a923480e05658b20a523b82b",
+          "size_bytes": 287
+        },
+        {
+          "fold_index": 1,
+          "path": "postprocessors/tuned-dbn/fold_1.json",
+          "sha256": "d0d02ef0afdbfcda7a735cd0a6892a8982cc98d15635e2b538792f959702bb02",
+          "size_bytes": 286
+        },
+        {
+          "fold_index": 2,
+          "path": "postprocessors/tuned-dbn/fold_2.json",
+          "sha256": "2ddd3a87504def5110988fc3b2dfb4f0566c9a73a923480e05658b20a523b82b",
+          "size_bytes": 287
+        },
+        {
+          "fold_index": 3,
+          "path": "postprocessors/tuned-dbn/fold_3.json",
+          "sha256": "8ba779a7285170978bfb87ed983d9683175cbac5c6dec6dc44f6c44627359486",
+          "size_bytes": 287
+        },
+        {
+          "fold_index": 4,
+          "path": "postprocessors/tuned-dbn/fold_4.json",
+          "sha256": "32f4828207676a53cbde7e66257056c089aa98d7bd8869a92805d4f2808dc5bc",
+          "size_bytes": 286
+        }
+      ],
       "id": "tuned-dbn",
       "kind": "tuned",
       "method": "dbn_downbeat",
       "online_contract_version": 3,
-      "path": "postprocessors/tuned-dbn/params.json",
-      "selection_hash": "sel-b59ed2ff2e92",
+      "path": "postprocessors/tuned-dbn/selection.json",
+      "selection_hash": "sel-834856d6c4ae",
+      "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "8ba779a7285170978bfb87ed983d9683175cbac5c6dec6dc44f6c44627359486",
-      "size_bytes": 287,
-      "source_id": "dbn-hybrid-joint",
+      "sha256": "b7204e9cfd3d20c116c025436806ac7b2249e2115f0f4ac9fbc38648d78726ac",
+      "size_bytes": 5682,
+      "source_id": "dbn-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-dbn/source-manifest.json",
-        "sha256": "7ab2a4e6ecfa925c40a195a01a5cc0b6e99c88dfc5fe063a8c7bd6759472bfeb",
-        "size_bytes": 6383
+        "sha256": "452ce32c12e42690210c934c5de0278db7da7703c8864920c7d74b7048f297af",
+        "size_bytes": 2490
       },
       "test_used_for_selection": false
     },
     "tuned-particle-filter": {
       "causal": true,
+      "fold_parameters": [
+        {
+          "fold_index": 0,
+          "path": "postprocessors/tuned-particle-filter/fold_0.json",
+          "sha256": "7afb67deffa04a40ef81c54aa8e30dcb24ae39b34234dea7380feeafbdbcf8a0",
+          "size_bytes": 647
+        },
+        {
+          "fold_index": 1,
+          "path": "postprocessors/tuned-particle-filter/fold_1.json",
+          "sha256": "ddd8d07e8a2a19572d67d45756297b37fbd8b2ea6afe8278e65d2a34454c282f",
+          "size_bytes": 646
+        },
+        {
+          "fold_index": 2,
+          "path": "postprocessors/tuned-particle-filter/fold_2.json",
+          "sha256": "03058749fe52b325bae9d45d452478bcb070af85813d8549fa527a9576390d27",
+          "size_bytes": 647
+        },
+        {
+          "fold_index": 3,
+          "path": "postprocessors/tuned-particle-filter/fold_3.json",
+          "sha256": "0027154d3a19d27c94e5db7384c42f1cd0d2671a0a16f3618d091ed631f36807",
+          "size_bytes": 647
+        },
+        {
+          "fold_index": 4,
+          "path": "postprocessors/tuned-particle-filter/fold_4.json",
+          "sha256": "325dcc5c1c44061bbad20d840ad011711677ee5d7dd6fdb41b5b7ea3782dd4f8",
+          "size_bytes": 647
+        }
+      ],
       "id": "tuned-particle-filter",
       "kind": "tuned",
       "method": "particle_filter",
       "online_contract_version": 3,
-      "path": "postprocessors/tuned-particle-filter/params.json",
-      "selection_hash": "sel-f5176e1fce90",
+      "path": "postprocessors/tuned-particle-filter/selection.json",
+      "selection_hash": "sel-debf9d682ced",
+      "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "b94ddb2e38318b6bce60696e16f5888a8f3fcc36aae0e379b56d223e13e2721c",
-      "size_bytes": 34,
-      "source_id": "particle-filter-fixed",
+      "sha256": "79ed9e3f7554364168a97849e7c41474cc7a7e229ff0455b97ac4b66320fb3e4",
+      "size_bytes": 7702,
+      "source_id": "particle-filter-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-particle-filter/source-manifest.json",
-        "sha256": "b3baaddf18ac3db56b5a140b20c0cb77efb7cc913373cb92dda2d376c92fc2ed",
-        "size_bytes": 6095
+        "sha256": "9417a34856ea805cf7dba9084bacd5c17b599ccd03574bb8e4cfd4ed46d48188",
+        "size_bytes": 2502
       },
       "test_used_for_selection": false
     }

@@ -1,0 +1,25 @@
+{
+  "1d_ss_type": "1d-ss-at",
+  "beats_per_bar": [
+    4
+  ],
+  "downbeat_activation_threshold": 0.3,
+  "downbeat_observation_lambda": "B60",
+  "event_activation_threshold": 0.8,
+  "ig_threshold": 0.4,
+  "lambda_b": 0.02,
+  "lambda_d": 0.001,
+  "max_beats_per_bar": 4,
+  "max_bpm": 255.0,
+  "method": "heydari_1d_state_space",
+  "min_beats_per_bar": 4,
+  "min_bpm": 145.0,
+  "min_separation_fraction": 0.55,
+  "min_separation_mode": "local_tempo",
+  "mode": "at",
+  "observation_lambda": "B56",
+  "offset": 0.0,
+  "peak_snap_mode": "past",
+  "peak_snap_threshold": null,
+  "peak_snap_window_frames": 0
+}

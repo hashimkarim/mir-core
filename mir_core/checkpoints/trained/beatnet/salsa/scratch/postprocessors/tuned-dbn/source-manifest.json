@@ -1,142 +1,38 @@
 {
-  "attempt_id": "beat-final-online-v3-20260811T1715Z-specialists-scratch",
-  "checkpoint_prestart": {
-    "attempt_id": "beat-final-online-v3-20260811T1715Z-specialists-scratch",
-    "checkpoint_selector": "best_loss",
-    "consumer_stage": "evaluation",
-    "experiment_hash": "btk-745d23a56687ebe0",
-    "fold_count": 5,
-    "folds": [
-      {
-        "checkpoint": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_0/checkpoints/official/best_loss.pt",
-        "checkpoint_bytes": 1623241,
-        "fold_index": 0,
-        "manifest": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_0/manifest.json"
-      },
-      {
-        "checkpoint": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_1/checkpoints/official/best_loss.pt",
-        "checkpoint_bytes": 1623241,
-        "fold_index": 1,
-        "manifest": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_1/manifest.json"
-      },
-      {
-        "checkpoint": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_2/checkpoints/official/best_loss.pt",
-        "checkpoint_bytes": 1623241,
-        "fold_index": 2,
-        "manifest": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_2/manifest.json"
-      },
-      {
-        "checkpoint": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_3/checkpoints/official/best_loss.pt",
-        "checkpoint_bytes": 1623241,
-        "fold_index": 3,
-        "manifest": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_3/manifest.json"
-      },
-      {
-        "checkpoint": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_4/checkpoints/official/best_loss.pt",
-        "checkpoint_bytes": 1623241,
-        "fold_index": 4,
-        "manifest": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/fold_4/manifest.json"
-      }
-    ],
-    "requested_checkpoint_selector": "val_loss",
-    "train_manifest": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/manifest.json"
+  "candidates": {
+    "equivalent_settings_merged": "DBN only: num_tempi when the tempo range has at most 30 frame intervals; meter_change_prob for a single meter",
+    "origin": "every distinct setting of this decoder that the August searches of this experiment evaluated and that the ported decoder can run",
+    "sweep_root": "/mnt/mir-project/runs/btk-745d23a56687ebe0/sweep"
   },
-  "dataset_ids": [
-    "salsaset_ft"
-  ],
-  "decoder": null,
-  "ended_at": "2026-08-13T08:25:24Z",
   "experiment_hash": "btk-745d23a56687ebe0",
   "fold_count": 5,
-  "fold_index": null,
-  "git_commit": "f31d8042c937c69b61011a519b9cc3609d3e8155",
-  "initialization": null,
-  "layout_order": "stage/attempt",
-  "method": null,
-  "model": {
-    "dropout": 0.0,
-    "hidden_dim": 150,
-    "input_dim": 272,
-    "name": "beatnet",
-    "num_layers": 2,
-    "preprocessing": {
-      "hop_size": 441,
-      "mode": "online",
-      "n_bands": 24,
-      "sample_rate": 22050,
-      "win_length": 1408
-    }
-  },
-  "parameter_file": "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/params.json",
-  "parents": [
-    {
-      "checkpoint_selector": "best_loss",
-      "manifest": "train/beat-final-online-v3-20260811T1715Z-specialists-scratch/manifest.json",
-      "stage": "train"
-    },
-    {
-      "manifest": "sweep/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn/hybrid/manifest.json",
-      "selection": "sweep/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn/hybrid/selections/joint.json",
-      "stage": "sweep"
-    }
-  ],
-  "postprocessor_id": "dbn-hybrid-joint",
-  "produced_files": [
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/params.json",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/locked_postprocessor.json",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/aggregate/metrics.json",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/aggregate/official_metrics.json",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/aggregate/evaluation_metrics.json",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/aggregate/observational_metrics.json",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/aggregate/observational_track_difficulty.json",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/aggregate/observational_track_difficulty.csv",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/fold_0/metrics",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/fold_1/metrics",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/fold_2/metrics",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/fold_3/metrics",
-    "eval/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn-hybrid-joint/sel-3f47b1a184b4/fold_4/metrics"
-  ],
-  "record_type": "stage",
-  "schema_version": "beatlab-experiment-layout/v1",
-  "scientific_config_hash": "745d23a56687ebe0d345aa382c07272d1a654b104772f8b8dcfce5fac97e00f3",
-  "selection_hash": "sel-3f47b1a184b4",
-  "split_contract": {
-    "n_folds": 5,
-    "universe": "latin-router-system-v1",
-    "validation_fraction": 0.1
-  },
-  "split_hash": null,
-  "stage": "evaluation",
+  "notes": "Parameters were selected on validation songs only. The decision to re-rank the searched settings instead of running a new search was taken after comparing both on the salsa specialist, including on its test songs.",
+  "postprocessor_id": "dbn-live-validation-rerank-per-fold",
+  "reason": "The August searches scored settings on stored features, whose frames are centred about 24 ms later than those of the live frontend, and a shared setting lets validation songs of one fold influence the setting used on them as test songs of another fold.",
+  "record_type": "selection",
+  "schema_version": 1,
+  "selected_at": "2026-10-06",
+  "selection_hash": "sel-6dbcb07cd74a",
+  "stage": "selection",
   "stage_config": {
-    "benchmark_latency": true,
-    "checkpoint": "val_loss",
-    "evaluation_splits": [
-      "validation",
-      "test"
-    ],
-    "latency_feature_cache": false,
-    "latency_max_tracks_per_dataset": 40,
+    "activation_source": "live scores of the ported engine: each fold model on that fold's validation songs, uncached streaming frontend",
+    "aggregation": "track mean per dataset, harmonic mean of beat and downbeat, mean over datasets",
+    "availability_rule": "(emission frame + 1) / fps + 0.0033 s",
+    "decoder": "ported decoder of mir-embedded-pp (host library); the particle filter uses the portable SplitMix64 generator with the per-track seed of the benchmark plan",
     "online_causal_contract_version": 3,
     "postprocessors_all_online": true,
-    "result_split": "test",
-    "selection_policy": "sweep_selection",
+    "selection_policy": "one_parameter_set_per_fold",
+    "selection_scope": "single_fold_validation_per_fold",
     "selection_split": "validation",
-    "source_parameter_file": "sweep/beat-final-online-v3-20260811T1715Z-specialists-scratch/dbn/hybrid/selections/joint.json",
-    "test_used_for_selection": false
+    "test_used_for_selection": false,
+    "validation_metric": "joint_rt_f1_70ms"
   },
-  "stage_config_hash": "78063ac54092d94f86d234678be583ed34a9a13134fbd7f4bcee2414a207d58c",
-  "started_at": "2026-08-13T08:07:16Z",
   "status": "completed",
-  "target_ids": [
-    "salsaset_ft"
-  ],
-  "variant": null,
-  "wandb": {
-    "entity": "hashimkarim-tu-delft",
-    "group": "btk-745d23a56687ebe0",
-    "job_type": "evaluation",
-    "project": "beatlab",
-    "run_id": "od8uxkti",
-    "url": "https://wandb.ai/hashimkarim-tu-delft/beatlab/runs/od8uxkti"
+  "supersedes": "the shared August selection of this decoder, archived outside the repository on 6 October 2026",
+  "tools": {
+    "decoder_library_sha256": "c7a0d5079e274e1ee2b14feb5d2d1c12a804556b7d00996660373d3c638e273b",
+    "engine": "mir-desktop-app native-engine, main ae319de",
+    "engine_sha256": "7173f1ddabdd6e6b710c1c09b3624cceb4537d9f39f6ad7fb9038734e812f56c",
+    "record": "thesis-docs/operations/validation/native-routing-20261001/recheck-20261006/all-decoders-per-fold"
   }
 }
