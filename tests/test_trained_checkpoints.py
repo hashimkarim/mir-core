@@ -74,6 +74,7 @@ def test_checkpoint_and_postprocessor_can_be_selected_independently() -> None:
     assert set(bundle.tuned_postprocessors) == {
         "tuned-1d",
         "tuned-dbn",
+        "tuned-dbn-per-fold",
         "tuned-particle-filter",
     }
     assert set(bundle.stock_postprocessors) == STOCK_POSTPROCESSORS
@@ -90,6 +91,71 @@ def test_checkpoint_and_postprocessor_can_be_selected_independently() -> None:
     assert trained_postprocessor_path(
         "beatnet", "candombe", "scratch", "stock-dbn"
     ).is_file()
+
+
+PER_FOLD_DBN_BUNDLES = (
+    ("latin_general", "scratch"),
+    ("brid", "finetune_latin_general"),
+    ("candombe", "scratch"),
+    ("salsa", "finetune_latin_general"),
+)
+
+
+@pytest.mark.parametrize(("target", "condition"), PER_FOLD_DBN_BUNDLES)
+def test_per_fold_dbn_is_the_default_and_requires_a_fold(
+    target: str, condition: str
+) -> None:
+    bundle = load_trained_model_bundle("beatnet", target, condition)
+
+    assert bundle.default_postprocessor == "tuned-dbn-per-fold"
+    assert bundle.postprocessor_is_per_fold()
+    assert not bundle.postprocessor_is_per_fold("tuned-dbn")
+    record = bundle.tuned_postprocessors["tuned-dbn-per-fold"]
+    assert record.metadata["selection_scope"] == "per_fold"
+    assert record.metadata["selection_split"] == "validation"
+    assert record.metadata["test_used_for_selection"] is False
+    with pytest.raises(ValueError, match="pass fold_index"):
+        bundle.postprocessor_path()
+    with pytest.raises(KeyError, match="no fold 5"):
+        bundle.postprocessor_path(fold_index=5)
+
+    selection = json.loads(
+        (bundle.root / record.relative_path).read_text(encoding="utf-8")
+    )
+    assert selection["selection_policy"] == "one_parameter_set_per_fold"
+    selected = {row["fold_index"]: row["parameters"] for row in selection["fold_parameters"]}
+    for fold_index in range(bundle.fold_count):
+        path = bundle.postprocessor_path(fold_index=fold_index)
+        assert path.name == f"fold_{fold_index}.json"
+        parameters = json.loads(path.read_text(encoding="utf-8"))
+        assert parameters == selected[fold_index]
+        assert parameters["method"] == "dbn_downbeat"
+        assert parameters["online"] is True and parameters["correct"] is False
+        assert path == trained_postprocessor_path(
+            "beatnet", target, condition, fold_index=fold_index
+        )
+
+
+def test_per_fold_selection_replaces_the_late_salsa_setting() -> None:
+    bundle = load_trained_model_bundle("beatnet", "salsa", "finetune_latin_general")
+
+    shared = json.loads(bundle.postprocessor_path("tuned-dbn").read_text(encoding="utf-8"))
+    assert shared["observation_lambda"] == 16
+    for fold_index in range(bundle.fold_count):
+        parameters = json.loads(
+            bundle.postprocessor_path(fold_index=fold_index).read_text(encoding="utf-8")
+        )
+        assert (parameters["observation_lambda"], parameters["transition_lambda"]) == (8, 50.0)
+
+
+def test_shared_postprocessors_accept_a_fold_index() -> None:
+    bundle = load_trained_model_bundle("beatnet", "salsa", "scratch")
+
+    assert bundle.default_postprocessor == "tuned-dbn"
+    assert not bundle.postprocessor_is_per_fold()
+    assert bundle.postprocessor_path(fold_index=3) == bundle.postprocessor_path()
+    with pytest.raises(KeyError, match="no fold 9"):
+        bundle.postprocessor_path("stock-dbn", fold_index=9)
 
 
 def test_unusable_legacy_1d_candidate_is_not_exposed_as_tuned() -> None:

@@ -109,6 +109,46 @@ def _verify_file(path: Path, record: "TrainedFile", *, name: str) -> None:
         raise ValueError(f"{name} SHA-256 does not match its bundle manifest.")
 
 
+def _fold_parameter_records(
+    record: "TrainedFile",
+    *,
+    name: str,
+) -> dict[int, "TrainedFile"] | None:
+    """Return the per-fold parameter files of a postprocessor, if it has any.
+
+    A tuned postprocessor selected separately for every fold lists one file per
+    fold under ``fold_parameters``; its own ``path`` is then the selection
+    record, not a parameter file.
+    """
+
+    rows = record.metadata.get("fold_parameters")
+    if rows is None:
+        if record.metadata.get("selection_scope") == "per_fold":
+            raise ValueError(f"{name} is per-fold but lists no fold_parameters.")
+        return None
+    if record.metadata.get("selection_scope") != "per_fold":
+        raise ValueError(f"{name} fold_parameters require selection_scope 'per_fold'.")
+    if not isinstance(rows, list | tuple) or not rows:
+        raise ValueError(f"{name}.fold_parameters must be a non-empty list.")
+    folds: dict[int, TrainedFile] = {}
+    for row in rows:
+        entry = _mapping(row, name=f"{name} fold parameters")
+        fold_index = entry.get("fold_index")
+        if isinstance(fold_index, bool) or not isinstance(fold_index, int):
+            raise ValueError(f"{name}.fold_parameters[].fold_index must be an integer.")
+        if fold_index in folds:
+            raise ValueError(f"{name} lists fold {fold_index} more than once.")
+        parsed = _file_record(entry, name=f"{name} fold {fold_index}")
+        # Fold files share the selection provenance of their postprocessor.
+        folds[fold_index] = TrainedFile(
+            relative_path=parsed.relative_path,
+            sha256=parsed.sha256,
+            size_bytes=parsed.size_bytes,
+            metadata=record.metadata,
+        )
+    return folds
+
+
 def _nonnegative_number(value: Any, *, name: str) -> float:
     if isinstance(value, bool) or not isinstance(value, int | float):
         raise ValueError(f"{name} must be a non-negative finite number.")
@@ -236,25 +276,58 @@ class TrainedModelBundle:
             _verify_file(path, record, name=f"checkpoint fold {fold_index}")
         return path
 
-    def postprocessor_path(
-        self,
-        name: str | None = None,
-        *,
-        verify: bool = True,
-    ) -> Path:
-        """Return one explicitly selected online postprocessor parameter file."""
-
+    def _postprocessor_record(self, name: str | None) -> tuple[str, TrainedFile]:
         selected = self.default_postprocessor if name is None else name
         if selected is None:
             raise ValueError(f"Bundle {self.bundle_id!r} has no postprocessors.")
         try:
-            record = self.postprocessors[selected]
+            return selected, self.postprocessors[selected]
         except KeyError as exc:
             available = ", ".join(self.postprocessors) or "none"
             raise KeyError(
                 f"Bundle {self.bundle_id!r} has no postprocessor {selected!r}; "
                 f"available: {available}."
             ) from exc
+
+    def postprocessor_is_per_fold(self, name: str | None = None) -> bool:
+        """Whether the postprocessor has one parameter file for every fold."""
+
+        selected, record = self._postprocessor_record(name)
+        return (
+            _fold_parameter_records(record, name=f"postprocessor {selected!r}")
+            is not None
+        )
+
+    def postprocessor_path(
+        self,
+        name: str | None = None,
+        *,
+        fold_index: int | None = None,
+        verify: bool = True,
+    ) -> Path:
+        """Return one explicitly selected online postprocessor parameter file.
+
+        A per-fold postprocessor requires ``fold_index`` and returns the file
+        selected on that fold's validation songs. For a postprocessor with one
+        shared parameter file, ``fold_index`` is accepted and has no effect, so
+        fold-aware callers can always pass it.
+        """
+
+        selected, record = self._postprocessor_record(name)
+        if fold_index is not None:
+            if isinstance(fold_index, bool) or not isinstance(fold_index, int):
+                raise TypeError("fold_index must be an integer.")
+            if fold_index not in self.checkpoints:
+                raise KeyError(f"Bundle {self.bundle_id!r} has no fold {fold_index}.")
+        folds = _fold_parameter_records(record, name=f"postprocessor {selected!r}")
+        if folds is not None:
+            if fold_index is None:
+                raise ValueError(
+                    f"Postprocessor {selected!r} of bundle {self.bundle_id!r} has "
+                    "one parameter set per fold; pass fold_index."
+                )
+            record = folds[fold_index]
+            selected = f"{selected} fold {fold_index}"
         path = self.root / record.relative_path
         if verify:
             _verify_file(path, record, name=f"postprocessor {selected!r}")
@@ -389,6 +462,11 @@ def load_trained_model_bundle(
                 "Postprocessor ids must use the '<kind>-<method>[-<variant>]' "
                 "naming pattern."
             )
+        folds = _fold_parameter_records(record, name=f"postprocessor {name!r}")
+        if folds is not None and set(folds) != set(checkpoints):
+            raise ValueError(
+                f"Per-fold postprocessor {name!r} must cover exactly the bundle's folds."
+            )
         postprocessors[postprocessor_name] = record
     default_postprocessor = manifest.get("default_postprocessor")
     if task == "beat_tracking":
@@ -431,7 +509,11 @@ def load_trained_model_bundle(
         for fold_index in range(bundle.fold_count):
             bundle.checkpoint_path(fold_index)
         for name in bundle.postprocessors:
-            bundle.postprocessor_path(name)
+            if bundle.postprocessor_is_per_fold(name):
+                for fold_index in range(bundle.fold_count):
+                    bundle.postprocessor_path(name, fold_index=fold_index)
+            else:
+                bundle.postprocessor_path(name)
     return bundle
 
 
@@ -479,15 +561,20 @@ def trained_postprocessor_path(
     target: str,
     condition: str,
     name: str | None = None,
+    *,
+    fold_index: int | None = None,
 ) -> Path:
-    """Resolve and verify one packaged online postprocessor parameter file."""
+    """Resolve and verify one packaged online postprocessor parameter file.
+
+    Per-fold postprocessors require ``fold_index``.
+    """
 
     return load_trained_model_bundle(
         model_family,
         target,
         condition,
         verify_files=False,
-    ).postprocessor_path(name)
+    ).postprocessor_path(name, fold_index=fold_index)
 
 
 def beatnet_stock_postprocessor_selection_path() -> Path:

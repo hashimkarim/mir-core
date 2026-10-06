@@ -1,0 +1,17 @@
+{
+  "beats_per_bar": [
+    2,
+    4
+  ],
+  "correct": false,
+  "max_bpm": 240.0,
+  "meter_change_prob": 1e-07,
+  "method": "dbn_downbeat",
+  "min_bpm": 80.0,
+  "num_tempi": 60,
+  "num_threads": 1,
+  "observation_lambda": 8,
+  "online": true,
+  "threshold": 0.0,
+  "transition_lambda": 50.0
+}

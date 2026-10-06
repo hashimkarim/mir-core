@@ -49,9 +49,38 @@ classifier = trained_checkpoint_path(
 ```
 
 `TrainedModelBundle.postprocessors` contains both groups, while
-`stock_postprocessors` and `tuned_postprocessors` expose them separately. The
-default remains `tuned-dbn`; choose the corresponding `stock-*` name explicitly
-to reproduce the original behavior. The legacy combined stock catalog remains
+`stock_postprocessors` and `tuned_postprocessors` expose them separately.
+Choose the corresponding `stock-*` name explicitly to reproduce the original
+behavior.
+
+## Per-fold DBN settings
+
+The four bundles of the routed system (`latin_general/scratch`,
+`brid/finetune_latin_general`, `candombe/scratch` and
+`salsa/finetune_latin_general`) also carry `tuned-dbn-per-fold`, which is
+their default. It holds one joint-DBN parameter file per fold
+(`postprocessors/tuned-dbn-per-fold/fold_<fold>.json`), selected on that
+fold's validation songs only, so a test song never influences the setting it
+is evaluated with. Pass the fold:
+
+```python
+parameters = trained_postprocessor_path(
+    "beatnet", "salsa", "finetune_latin_general", fold_index=2
+)
+```
+
+Calling without `fold_index` raises for a per-fold postprocessor; for a
+shared one, `fold_index` is accepted and ignored, so fold-aware callers can
+always pass it. `TrainedModelBundle.postprocessor_is_per_fold()` tells the two
+apart, and `selection.json` records the validation scores of every fold.
+
+The settings were selected on 6 October 2026 by scoring the settings that the
+August searches had tried on live scores (the uncached streaming frontend of
+the ported engine) and taking the highest joint RT-F1 at 70 ms per fold. The
+August searches used stored features, whose frames are centred about 24 ms
+later than the live ones. `tuned-dbn` remains the shared August selection, as
+used by the system comparisons of August and 1 October 2026. The other three
+bundles keep `tuned-dbn` as their default. The legacy combined stock catalog remains
 available through `beatnet_stock_postprocessor_selection_path()`.
 
 Every file is byte-bound by its bundle manifest. All current bundles use split

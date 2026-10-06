@@ -53,7 +53,7 @@
     }
   ],
   "condition": "finetune_latin_general",
-  "default_postprocessor": "tuned-dbn",
+  "default_postprocessor": "tuned-dbn-per-fold",
   "fold_count": 5,
   "lifecycle": "candidate",
   "model": {
@@ -169,6 +169,58 @@
         "path": "postprocessors/tuned-dbn/source-manifest.json",
         "sha256": "6d04bf7cf45a46b899dd016c9959702f844f3fe9fa3e48f779c81cad42c75f6f",
         "size_bytes": 6938
+      },
+      "test_used_for_selection": false
+    },
+    "tuned-dbn-per-fold": {
+      "causal": true,
+      "fold_parameters": [
+        {
+          "fold_index": 0,
+          "path": "postprocessors/tuned-dbn-per-fold/fold_0.json",
+          "sha256": "db75631840b9673e4068c1349f24531345e2eb7fff380bb512e87eb5f36b8515",
+          "size_bytes": 287
+        },
+        {
+          "fold_index": 1,
+          "path": "postprocessors/tuned-dbn-per-fold/fold_1.json",
+          "sha256": "32f4828207676a53cbde7e66257056c089aa98d7bd8869a92805d4f2808dc5bc",
+          "size_bytes": 286
+        },
+        {
+          "fold_index": 2,
+          "path": "postprocessors/tuned-dbn-per-fold/fold_2.json",
+          "sha256": "4986d3204381653c1d4449a0ccc673a96c07a57ac6304d1a1c77b8c8cf5dbcf4",
+          "size_bytes": 286
+        },
+        {
+          "fold_index": 3,
+          "path": "postprocessors/tuned-dbn-per-fold/fold_3.json",
+          "sha256": "b2875c11750ccba9e98d95548d2a0ed5d868188e59d193f5beb648392b05bb0b",
+          "size_bytes": 287
+        },
+        {
+          "fold_index": 4,
+          "path": "postprocessors/tuned-dbn-per-fold/fold_4.json",
+          "sha256": "d1f2ac5f4d5240402dc497d0ee6d949c3f58659c01e2375090e8b67ace28cf24",
+          "size_bytes": 286
+        }
+      ],
+      "id": "tuned-dbn-per-fold",
+      "kind": "tuned",
+      "method": "dbn_downbeat",
+      "online_contract_version": 3,
+      "path": "postprocessors/tuned-dbn-per-fold/selection.json",
+      "selection_hash": "sel-26855ce28cb6",
+      "selection_scope": "per_fold",
+      "selection_split": "validation",
+      "sha256": "e460767ed56466f55db2383a00e825fcf5414feb2e0f81b4e730f9026bdf370c",
+      "size_bytes": 4860,
+      "source_id": "dbn-live-validation-rerank-per-fold",
+      "source_manifest": {
+        "path": "postprocessors/tuned-dbn-per-fold/source-manifest.json",
+        "sha256": "ee2a6036600a0a40dac4f28c4a8248719fb560f8332baceac29db4cbbc3844ce",
+        "size_bytes": 2230
       },
       "test_used_for_selection": false
     },

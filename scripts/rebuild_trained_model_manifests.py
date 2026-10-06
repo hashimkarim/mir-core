@@ -28,6 +28,11 @@ TUNED_POSTPROCESSOR_SOURCE_IDS = {
     "tuned-dbn": "dbn-hybrid-joint",
     "tuned-particle-filter": "particle-filter-fixed",
 }
+# Selected separately for every fold on that fold's validation songs.
+PER_FOLD_POSTPROCESSOR_SOURCE_IDS = {
+    "tuned-dbn-per-fold": "dbn-live-validation-rerank-per-fold",
+}
+PER_FOLD_DEFAULT_POSTPROCESSOR_ID = "tuned-dbn-per-fold"
 REQUIRED_TUNED_POSTPROCESSOR_IDS = {
     "tuned-dbn",
     "tuned-particle-filter",
@@ -353,6 +358,64 @@ def tuned_postprocessor_records(root: Path) -> dict[str, dict[str, Any]]:
     return records
 
 
+def per_fold_postprocessor_records(root: Path) -> dict[str, dict[str, Any]]:
+    records: dict[str, dict[str, Any]] = {}
+    for selection_path in sorted((root / "postprocessors").glob("*/selection.json")):
+        candidate = selection_path.parent.name
+        source_path = selection_path.with_name("source-manifest.json")
+        if not source_path.is_file():
+            raise FileNotFoundError(f"Missing PP source manifest: {source_path}")
+        selection = json.loads(selection_path.read_text(encoding="utf-8"))
+        source = json.loads(source_path.read_text(encoding="utf-8"))
+        stage = source.get("stage_config", {})
+        if (
+            PER_FOLD_POSTPROCESSOR_SOURCE_IDS.get(candidate) is None
+            or source.get("postprocessor_id")
+            != PER_FOLD_POSTPROCESSOR_SOURCE_IDS[candidate]
+            or source.get("status") != "completed"
+            or selection.get("postprocessor_id") != candidate
+            or selection.get("selection_policy") != "one_parameter_set_per_fold"
+            or stage.get("selection_policy") != "one_parameter_set_per_fold"
+            or stage.get("postprocessors_all_online") is not True
+            or stage.get("selection_split") != "validation"
+            or stage.get("test_used_for_selection") is not False
+        ):
+            raise ValueError(
+                f"Postprocessor is not a completed per-fold causal selection: {selection_path}"
+            )
+        selected = {
+            int(row["fold_index"]): row["parameters"]
+            for row in selection.get("fold_parameters", [])
+        }
+        if sorted(selected) != list(range(FOLD_COUNT)):
+            raise ValueError(f"Per-fold selection must cover every fold: {selection_path}")
+        fold_records = []
+        for fold in range(FOLD_COUNT):
+            fold_path = selection_path.with_name(f"fold_{fold}.json")
+            if not fold_path.is_file():
+                raise FileNotFoundError(f"Missing fold parameters: {fold_path}")
+            params = json.loads(fold_path.read_text(encoding="utf-8"))
+            if params != selected[fold] or params.get("method") != selection.get("method"):
+                raise ValueError(f"Fold parameters differ from their selection: {fold_path}")
+            fold_records.append({"fold_index": fold, **file_record(fold_path, root)})
+        records[candidate] = {
+            "id": candidate,
+            "kind": "tuned",
+            "source_id": source.get("postprocessor_id"),
+            "method": selection.get("method"),
+            "causal": True,
+            "selection_hash": source.get("selection_hash"),
+            "selection_split": "validation",
+            "selection_scope": "per_fold",
+            "test_used_for_selection": False,
+            "online_contract_version": stage.get("online_causal_contract_version"),
+            "source_manifest": file_record(source_path, root),
+            "fold_parameters": fold_records,
+            **file_record(selection_path, root),
+        }
+    return records
+
+
 def stock_postprocessor_records(
     stock_source: dict[str, Any],
     stock_choices: dict[str, dict[str, Any]],
@@ -385,6 +448,7 @@ def build_manifest(
     checkpoints, model, split = checkpoint_records(source, root)
     if source.task == "beat_tracking":
         postprocessors = tuned_postprocessor_records(root)
+        postprocessors.update(per_fold_postprocessor_records(root))
         postprocessors.update(stock_postprocessor_records(stock_source, stock_choices))
     else:
         postprocessors = {}
@@ -416,7 +480,11 @@ def build_manifest(
         "checkpoints": checkpoints,
         "postprocessors": postprocessors,
         "default_postprocessor": (
-            DEFAULT_POSTPROCESSOR_ID if source.task == "beat_tracking" else None
+            None
+            if source.task != "beat_tracking"
+            else PER_FOLD_DEFAULT_POSTPROCESSOR_ID
+            if PER_FOLD_DEFAULT_POSTPROCESSOR_ID in postprocessors
+            else DEFAULT_POSTPROCESSOR_ID
         ),
     }
     return root / "manifest.json", manifest
