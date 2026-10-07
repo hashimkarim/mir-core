@@ -4,10 +4,10 @@
     4
   ],
   "downbeat_activation_threshold": 0.6,
-  "downbeat_observation_lambda": "B60",
+  "downbeat_observation_lambda": "N1",
   "event_activation_threshold": 0.6,
   "ig_threshold": 0.4,
-  "lambda_b": 0.1,
+  "lambda_b": 0.05,
   "lambda_d": 0.01,
   "max_beats_per_bar": 4,
   "max_bpm": 160.0,

@@ -17,7 +17,7 @@
   "min_separation_fraction": 0.55,
   "min_separation_mode": "local_tempo",
   "mode": "at",
-  "observation_lambda": "B56",
+  "observation_lambda": "N5",
   "offset": 0.0,
   "peak_snap_mode": "past",
   "peak_snap_threshold": null,

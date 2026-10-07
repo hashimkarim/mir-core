@@ -3,11 +3,11 @@
   "beats_per_bar": [
     2
   ],
-  "downbeat_activation_threshold": 0.4,
+  "downbeat_activation_threshold": 0.3,
   "downbeat_observation_lambda": "B60",
-  "event_activation_threshold": 0.9,
+  "event_activation_threshold": 0.86,
   "ig_threshold": 0.4,
-  "lambda_b": 0.005,
+  "lambda_b": 0.01,
   "lambda_d": 0.01,
   "max_beats_per_bar": 2,
   "max_bpm": 165.0,
@@ -17,7 +17,7 @@
   "min_separation_fraction": 0.35,
   "min_separation_mode": "min_interval",
   "mode": "at",
-  "observation_lambda": "B56",
+  "observation_lambda": "N1",
   "offset": 0.0,
   "peak_snap_mode": "past",
   "peak_snap_threshold": null,

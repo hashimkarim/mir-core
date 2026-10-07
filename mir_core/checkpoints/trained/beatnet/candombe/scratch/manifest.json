@@ -129,14 +129,14 @@
         {
           "fold_index": 0,
           "path": "postprocessors/tuned-1d/fold_0.json",
-          "sha256": "9d4bcbb54cdd10a93db0e08b1618d75ce18b39b3df2c2d5db82511c55ac103e4",
+          "sha256": "83b49e8beebbeded2434cd023b7bb50329e6b4a7a7789cdc6b5dfd5daaefef23",
           "size_bytes": 601
         },
         {
           "fold_index": 1,
           "path": "postprocessors/tuned-1d/fold_1.json",
-          "sha256": "6a6119017c1889667897b49598c295816c93ddfdfee8f4783904f149a744b121",
-          "size_bytes": 605
+          "sha256": "e803f8047c256d1001d9650a4bef158c09fc0772b31c1c49475d58e9bbc31cce",
+          "size_bytes": 602
         },
         {
           "fold_index": 2,
@@ -147,8 +147,8 @@
         {
           "fold_index": 3,
           "path": "postprocessors/tuned-1d/fold_3.json",
-          "sha256": "a93e163c3562d9c321bb4a5f621cf05c342fefd6d8138a5a01bb0fb38c15b644",
-          "size_bytes": 606
+          "sha256": "17b76ba6267d03dc52b41f25d6cd6c9d3973a8687b44ba6b8e62c0d34b955909",
+          "size_bytes": 601
         },
         {
           "fold_index": 4,
@@ -162,16 +162,16 @@
       "method": "heydari_1d_state_space",
       "online_contract_version": 4,
       "path": "postprocessors/tuned-1d/selection.json",
-      "selection_hash": "sel-e773e72e401c",
+      "selection_hash": "sel-7d028f8e6573",
       "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "82538aadbfc6c04839853d37269a552b2a33e094ff18285285d5ab0ab762b0f9",
-      "size_bytes": 7298,
+      "sha256": "940ba192fb987a3f5d5d25c5786a908519ee1bc87cb3188a210ed932f60ea3ee",
+      "size_bytes": 7350,
       "source_id": "1d-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-1d/source-manifest.json",
-        "sha256": "78291972a47b8d468286fe1a3cb994ab0a9ccd6439a9afad89e3c4da38464899",
-        "size_bytes": 2489
+        "sha256": "4b179f852d7e0ab0275395ccf96e1ccd2aa03fb17fd925151c71067072821b8b",
+        "size_bytes": 2913
       },
       "test_used_for_selection": false
     },

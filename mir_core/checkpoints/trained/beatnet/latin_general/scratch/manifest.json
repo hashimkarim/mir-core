@@ -153,7 +153,7 @@
         {
           "fold_index": 4,
           "path": "postprocessors/tuned-1d/fold_4.json",
-          "sha256": "d9c8a08206496437c9f03badd95f670cb4f60ae7c281cbe28c5c0b2183ddd17b",
+          "sha256": "4bfd6166878e21b3273916490f9af910c00c3adc531593cb2791621169698ac2",
           "size_bytes": 612
         }
       ],
@@ -162,16 +162,16 @@
       "method": "heydari_1d_state_space",
       "online_contract_version": 4,
       "path": "postprocessors/tuned-1d/selection.json",
-      "selection_hash": "sel-ac191d47db10",
+      "selection_hash": "sel-d99ae3dceae7",
       "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "a727e153252ce6ffa7ff7df7a2374408504651fdec7f25adbfee0a36dc9a386d",
-      "size_bytes": 7521,
+      "sha256": "266ca25b0897313cd9128a4606219d6aaa6a58d90028e300aba1c6871d57bd2e",
+      "size_bytes": 7562,
       "source_id": "1d-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-1d/source-manifest.json",
-        "sha256": "5efbca3257a152df9709003b9cb0b251be9b8859a71e0fbb762486523d988ed3",
-        "size_bytes": 2489
+        "sha256": "47c02e0772f749bdd9c242dc5124a3397b77529653801795966199cf313a3956",
+        "size_bytes": 2913
       },
       "test_used_for_selection": false
     },

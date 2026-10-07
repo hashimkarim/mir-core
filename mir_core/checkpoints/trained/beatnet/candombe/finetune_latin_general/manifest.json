@@ -146,8 +146,8 @@
         {
           "fold_index": 1,
           "path": "postprocessors/tuned-1d/fold_1.json",
-          "sha256": "b15c3f37ccf8db7cfc9cf61ed6c69a55cc22335bd163f82b1e6513a57d0d829b",
-          "size_bytes": 605
+          "sha256": "41debcb83e25294b257c914bc15430bad0a0a170aee42c0afeba23cdf20bc5eb",
+          "size_bytes": 602
         },
         {
           "fold_index": 2,
@@ -164,8 +164,8 @@
         {
           "fold_index": 4,
           "path": "postprocessors/tuned-1d/fold_4.json",
-          "sha256": "da97facf78d956bcbcf8175eb2f4d762908f2baea7d92d708532b9b808f257c3",
-          "size_bytes": 604
+          "sha256": "85de4216b138713e970748786a228908b5bc763ccfd3fda8cfac392261592f63",
+          "size_bytes": 603
         }
       ],
       "id": "tuned-1d",
@@ -173,16 +173,16 @@
       "method": "heydari_1d_state_space",
       "online_contract_version": 4,
       "path": "postprocessors/tuned-1d/selection.json",
-      "selection_hash": "sel-5c6481cec108",
+      "selection_hash": "sel-468bc6aa9d59",
       "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "eb31797a024da7800df58d1133e45550deb641606f806ade4ec2b2525daabfee",
-      "size_bytes": 7048,
+      "sha256": "c410cd70c9c449b509c58557b07812d1fd3ad09d19e8257ee585c0a82f86d1dc",
+      "size_bytes": 7078,
       "source_id": "1d-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-1d/source-manifest.json",
-        "sha256": "8b1d688e3a02555bcdcb9c611d06709ed3c243d0b2c6e13daa144ab9e96724d9",
-        "size_bytes": 2489
+        "sha256": "8e68ddc7716b6eeffabe9bade79e58532d85ac9b100cbdd8fc4f3511fe87e22e",
+        "size_bytes": 2913
       },
       "test_used_for_selection": false
     },

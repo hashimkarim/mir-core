@@ -1,9 +1,9 @@
 {
   "fold_parameters": [
     {
-      "august_fold_local_validation_joint_rt_f1_70ms": null,
+      "august_fold_local_validation_joint_rt_f1_70ms": 0.9715921981006652,
       "august_shared_validation_joint_rt_f1_70ms": null,
-      "distinct_candidates": 97,
+      "distinct_candidates": 189,
       "fold_index": 0,
       "parameters": {
         "1d_ss_type": "1d-ss-at",
@@ -11,10 +11,10 @@
           4
         ],
         "downbeat_activation_threshold": 0.6,
-        "downbeat_observation_lambda": "B60",
+        "downbeat_observation_lambda": "N1",
         "event_activation_threshold": 0.6,
         "ig_threshold": 0.4,
-        "lambda_b": 0.1,
+        "lambda_b": 0.05,
         "lambda_d": 0.01,
         "max_beats_per_bar": 4,
         "max_bpm": 160.0,
@@ -33,26 +33,26 @@
       "stock_validation_joint_rt_f1_70ms": 0.9577149497649949,
       "tied_at_top": 1,
       "validation": {
-        "beat_f1": 0.9843414607645751,
-        "beat_rt_f1_70ms": 0.9829645976143306,
-        "downbeat_f1": 0.9614464805069064,
-        "downbeat_rt_f1_70ms": 0.9614464805069064,
-        "joint_rt_f1_70ms": 0.9720864723238931,
-        "joint_rt_f1_nauc_30_150ms": 0.8835427220637614
+        "beat_f1": 0.9845252016643667,
+        "beat_rt_f1_70ms": 0.9824884714165675,
+        "downbeat_f1": 0.9626285136038331,
+        "downbeat_rt_f1_70ms": 0.9626285136038331,
+        "joint_rt_f1_70ms": 0.9724571058256561,
+        "joint_rt_f1_nauc_30_150ms": 0.8839928694936374
       },
       "validation_tracks": 4
     },
     {
-      "august_fold_local_validation_joint_rt_f1_70ms": null,
+      "august_fold_local_validation_joint_rt_f1_70ms": 0.9570793744921138,
       "august_shared_validation_joint_rt_f1_70ms": null,
-      "distinct_candidates": 97,
+      "distinct_candidates": 189,
       "fold_index": 1,
       "parameters": {
         "1d_ss_type": "1d-ss-at",
         "beats_per_bar": [
           4
         ],
-        "downbeat_activation_threshold": 0.55,
+        "downbeat_activation_threshold": 0.6,
         "downbeat_observation_lambda": "B60",
         "event_activation_threshold": 0.8,
         "ig_threshold": 0.4,
@@ -62,11 +62,11 @@
         "max_bpm": 160.0,
         "method": "heydari_1d_state_space",
         "min_beats_per_bar": 4,
-        "min_bpm": 105.0,
+        "min_bpm": 90.0,
         "min_separation_fraction": 0.45,
         "min_separation_mode": "min_interval",
         "mode": "at",
-        "observation_lambda": "B56",
+        "observation_lambda": "N1",
         "offset": 0.0,
         "peak_snap_mode": "past",
         "peak_snap_threshold": null,
@@ -77,17 +77,17 @@
       "validation": {
         "beat_f1": 0.9756786569036816,
         "beat_rt_f1_70ms": 0.9756786569036816,
-        "downbeat_f1": 0.9640170960578782,
-        "downbeat_rt_f1_70ms": 0.9640170960578782,
-        "joint_rt_f1_70ms": 0.9698128214982775,
-        "joint_rt_f1_nauc_30_150ms": 0.9256289262195281
+        "downbeat_f1": 0.9664458525345622,
+        "downbeat_rt_f1_70ms": 0.9664458525345622,
+        "joint_rt_f1_70ms": 0.9710403084751751,
+        "joint_rt_f1_nauc_30_150ms": 0.9268078838092438
       },
       "validation_tracks": 2
     },
     {
-      "august_fold_local_validation_joint_rt_f1_70ms": null,
+      "august_fold_local_validation_joint_rt_f1_70ms": 0.987829293803112,
       "august_shared_validation_joint_rt_f1_70ms": null,
-      "distinct_candidates": 97,
+      "distinct_candidates": 189,
       "fold_index": 2,
       "parameters": {
         "1d_ss_type": "1d-ss-at",
@@ -124,28 +124,28 @@
       "validation_tracks": 4
     },
     {
-      "august_fold_local_validation_joint_rt_f1_70ms": null,
+      "august_fold_local_validation_joint_rt_f1_70ms": 0.9865861039818689,
       "august_shared_validation_joint_rt_f1_70ms": null,
-      "distinct_candidates": 97,
+      "distinct_candidates": 189,
       "fold_index": 3,
       "parameters": {
         "1d_ss_type": "1d-ss-at",
         "beats_per_bar": [
           4
         ],
-        "downbeat_activation_threshold": 0.6,
-        "downbeat_observation_lambda": "B60",
-        "event_activation_threshold": 0.86,
+        "downbeat_activation_threshold": 0.4,
+        "downbeat_observation_lambda": "N1",
+        "event_activation_threshold": 0.7,
         "ig_threshold": 0.4,
-        "lambda_b": 0.001,
-        "lambda_d": 0.02,
+        "lambda_b": 0.01,
+        "lambda_d": 0.01,
         "max_beats_per_bar": 4,
         "max_bpm": 160.0,
         "method": "heydari_1d_state_space",
         "min_beats_per_bar": 4,
-        "min_bpm": 105.0,
+        "min_bpm": 90.0,
         "min_separation_fraction": 0.55,
-        "min_separation_mode": "min_interval",
+        "min_separation_mode": "local_tempo",
         "mode": "at",
         "observation_lambda": "B56",
         "offset": 0.0,
@@ -156,19 +156,19 @@
       "stock_validation_joint_rt_f1_70ms": 0.9730575815425314,
       "tied_at_top": 1,
       "validation": {
-        "beat_f1": 0.9908652632585784,
-        "beat_rt_f1_70ms": 0.9880330998555387,
-        "downbeat_f1": 0.9874576499158203,
-        "downbeat_rt_f1_70ms": 0.9860167277256185,
-        "joint_rt_f1_70ms": 0.9870238839896815,
-        "joint_rt_f1_nauc_30_150ms": 0.8679310801034287
+        "beat_f1": 0.9919853160295892,
+        "beat_rt_f1_70ms": 0.9902498732598816,
+        "downbeat_f1": 0.9865001542698443,
+        "downbeat_rt_f1_70ms": 0.985055067564642,
+        "joint_rt_f1_70ms": 0.9876456395666405,
+        "joint_rt_f1_nauc_30_150ms": 0.8872168297368211
       },
       "validation_tracks": 4
     },
     {
       "august_fold_local_validation_joint_rt_f1_70ms": 0.9748366908714522,
       "august_shared_validation_joint_rt_f1_70ms": null,
-      "distinct_candidates": 97,
+      "distinct_candidates": 189,
       "fold_index": 4,
       "parameters": {
         "1d_ss_type": "1d-ss-at",
@@ -196,7 +196,7 @@
         "peak_snap_window_frames": 0
       },
       "stock_validation_joint_rt_f1_70ms": 0.9618808511503247,
-      "tied_at_top": 5,
+      "tied_at_top": 17,
       "validation": {
         "beat_f1": 0.9809750999919136,
         "beat_rt_f1_70ms": 0.9809750999919136,

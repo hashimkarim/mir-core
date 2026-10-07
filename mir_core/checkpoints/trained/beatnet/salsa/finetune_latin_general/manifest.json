@@ -146,20 +146,20 @@
         {
           "fold_index": 1,
           "path": "postprocessors/tuned-1d/fold_1.json",
-          "sha256": "4f0570298c53a81f05b2e45915178a10071249cb8edf330b6ba1a51ae778b482",
-          "size_bytes": 605
+          "sha256": "851d61edbc6ae6181a96493538f10efc503bea6ea5dc3e75c2b8173bc8e316d0",
+          "size_bytes": 603
         },
         {
           "fold_index": 2,
           "path": "postprocessors/tuned-1d/fold_2.json",
-          "sha256": "dfe23b5b315c0c4b67b0764db5770993304a987ec485a5ca433f619852e8db7c",
-          "size_bytes": 604
+          "sha256": "851d61edbc6ae6181a96493538f10efc503bea6ea5dc3e75c2b8173bc8e316d0",
+          "size_bytes": 603
         },
         {
           "fold_index": 3,
           "path": "postprocessors/tuned-1d/fold_3.json",
-          "sha256": "74dfc6574c26e9505079eae189f3ac8466c3716c6f73847c0515c834a45baa8b",
-          "size_bytes": 604
+          "sha256": "e47413e64522cef4f8bdc10ec70a170982d13ee859352e24e071eb69eacdf2c4",
+          "size_bytes": 603
         },
         {
           "fold_index": 4,
@@ -173,16 +173,16 @@
       "method": "heydari_1d_state_space",
       "online_contract_version": 4,
       "path": "postprocessors/tuned-1d/selection.json",
-      "selection_hash": "sel-072c6c3a3c78",
+      "selection_hash": "sel-351eb3fb6d31",
       "selection_scope": "per_fold",
       "selection_split": "validation",
-      "sha256": "4c6d8c5b683bf9e8147671becf7c380c0a5da5bebe9f142fa013b59f0632d15d",
-      "size_bytes": 7475,
+      "sha256": "03427f668a701c72b750d74d725c2162e5bfdd0583dbf1a885ab50baa8b12289",
+      "size_bytes": 7484,
       "source_id": "1d-live-validation-rerank-per-fold",
       "source_manifest": {
         "path": "postprocessors/tuned-1d/source-manifest.json",
-        "sha256": "f9709544736897661f531161d2f759818deaeae8a2f712902a69a952aec69ece",
-        "size_bytes": 2489
+        "sha256": "7510b0c92b715378e315e2802aa67c3e4d4995f8f41be8eaccb619f428fdee60",
+        "size_bytes": 2913
       },
       "test_used_for_selection": false
     },

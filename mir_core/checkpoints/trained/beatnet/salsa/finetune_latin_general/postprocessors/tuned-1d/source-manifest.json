@@ -1,24 +1,24 @@
 {
   "candidates": {
     "equivalent_settings_merged": "DBN only: num_tempi when the tempo range has at most 30 frame intervals; meter_change_prob for a single meter",
-    "origin": "every distinct setting of this decoder that the August searches of this experiment evaluated and that the ported decoder can run",
+    "origin": "every distinct setting of this decoder that the August searches of this experiment evaluated and that the reference decoder accepts",
     "sweep_root": "/mnt/mir-project/runs/btk-013273597182a11d/sweep"
   },
   "experiment_hash": "btk-013273597182a11d",
   "fold_count": 5,
   "notes": "Parameters were selected on validation songs only. The decision to re-rank the searched settings instead of running a new search was taken after comparing both on the salsa specialist, including on its test songs.",
   "postprocessor_id": "1d-live-validation-rerank-per-fold",
-  "reason": "The August searches scored settings on stored features, whose frames are centred about 24 ms later than those of the live frontend, and a shared setting lets validation songs of one fold influence the setting used on them as test songs of another fold.",
+  "reason": "The August searches scored settings on stored features, whose frames are centred about 24 ms later than those of the live frontend, and a shared setting lets validation songs of one fold influence the setting used on them as test songs of another fold. The selection was repeated on 7 October 2026 because the ported 1D decoder now runs every setting that the reference accepts, so the candidate list no longer depends on the port. Data, scoring and rule are those of 6 October 2026.",
   "record_type": "selection",
   "schema_version": 1,
-  "selected_at": "2026-10-06",
-  "selection_hash": "sel-072c6c3a3c78",
+  "selected_at": "2026-10-07",
+  "selection_hash": "sel-351eb3fb6d31",
   "stage": "selection",
   "stage_config": {
     "activation_source": "live scores of the ported engine: each fold model on that fold's validation songs, uncached streaming frontend",
     "aggregation": "track mean per dataset, harmonic mean of beat and downbeat, mean over datasets",
     "availability_rule": "(emission frame + 1) / fps + 0.0033 s",
-    "decoder": "ported decoder of mir-embedded-pp (host library); the particle filter uses the portable SplitMix64 generator with the per-track seed of the benchmark plan",
+    "decoder": "ported 1D decoder of mir-embedded-pp (host library) after its completion on 7 October 2026: N widths and state-boundary mode included",
     "online_causal_contract_version": 4,
     "postprocessors_all_online": true,
     "selection_policy": "one_parameter_set_per_fold",
@@ -28,11 +28,13 @@
     "validation_metric": "joint_rt_f1_70ms"
   },
   "status": "completed",
-  "supersedes": "the shared August selection of this decoder, archived outside the repository on 6 October 2026",
+  "supersedes": "the per-fold selection of 6 October 2026, whose candidates were limited to the settings the ported 1D decoder could run then (B widths, activation-triggered output)",
   "tools": {
-    "decoder_library_sha256": "c7a0d5079e274e1ee2b14feb5d2d1c12a804556b7d00996660373d3c638e273b",
+    "adapter": "mir-desktop-app 8637bbd",
+    "decoder_library": "mir-embedded-pp 8aa3c74, host library built from source",
+    "decoder_library_sha256": "8cd32f808679aa1c6121b106ce1ac7a315b8b0a9d001631abea2a97bf6d06f1c",
     "engine": "mir-desktop-app native-engine, main ae319de",
     "engine_sha256": "7173f1ddabdd6e6b710c1c09b3624cceb4537d9f39f6ad7fb9038734e812f56c",
-    "record": "thesis-docs/operations/validation/native-routing-20261001/recheck-20261006/all-decoders-per-fold"
+    "record": "thesis-docs/operations/validation/native-routing-20261001/recheck-20261006/all-decoders-per-fold/full-1d-20261007"
   }
 }

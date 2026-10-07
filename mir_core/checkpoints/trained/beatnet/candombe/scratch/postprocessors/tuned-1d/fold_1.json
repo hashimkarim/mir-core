@@ -3,7 +3,7 @@
   "beats_per_bar": [
     4
   ],
-  "downbeat_activation_threshold": 0.55,
+  "downbeat_activation_threshold": 0.6,
   "downbeat_observation_lambda": "B60",
   "event_activation_threshold": 0.8,
   "ig_threshold": 0.4,
@@ -13,11 +13,11 @@
   "max_bpm": 160.0,
   "method": "heydari_1d_state_space",
   "min_beats_per_bar": 4,
-  "min_bpm": 105.0,
+  "min_bpm": 90.0,
   "min_separation_fraction": 0.45,
   "min_separation_mode": "min_interval",
   "mode": "at",
-  "observation_lambda": "B56",
+  "observation_lambda": "N1",
   "offset": 0.0,
   "peak_snap_mode": "past",
   "peak_snap_threshold": null,
