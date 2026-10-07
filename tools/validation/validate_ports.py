@@ -118,6 +118,10 @@ def command_plan(output, scratch, legacy_run=None, *, precise_android=False):
     add('references', 'offline-options-reference-compare', ['cmp', pp/'test/fixtures/offline_options_reference.json', scratch/'offline_options_reference.json'])
     add('references', 'postprocess-reference-freshness-export', [py, pp/'tools/export_port_fixtures.py', scratch/'port_reference.json'])
     add('references', 'postprocess-reference-freshness-compare', ['cmp', pp/'test/fixtures/port_reference.json', scratch/'port_reference.json'])
+    # Golden freshness, then every valid 1D setting of the August 2026 searches on recorded scores.
+    add('references', 'state-space-1d-reference-sweep', [py, '-m', 'pytest', '-q',
+        pp/'test/python/test_state_space_1d_golden.py', pp/'test/python/test_state_space_1d_sweep.py'],
+        extra={'MIR_STATE_SPACE_1D_REPLAY': str(pp_build/'state_space_1d_replay')})
     add('references', 'particle-filter-dual-rng', [py, pp/'tools/check_particle_filter_contract.py',
         '--replay', pp_build/'particle_filter_reference_contract',
         '--production', pp_build/'particle_filter_production_contract',
