@@ -167,6 +167,14 @@ unless end-to-end event timing also improves.
 
 ## Desktop selection
 
+Note of 2026-10-09: this section describes the Python desktop runtime in
+`mir-desktop-app/src/mir_desktop_app/`, which still reads these variables. The
+apps that run today start from `mir-desktop-app/study-app.sh` (Ritmo Study) and
+`mir-desktop-app/ritmomaestro.sh` (Ritmo Maestro). Both launch the C++ Qt
+program `mir-desktop-cpp` with the Rust engine `mir-native-engine`
+(`mir-desktop-app/tools/ritmo-launch.sh`). The last paragraph of this section,
+which calls a native GUI deferred, is kept as history and no longer holds.
+
 The desktop runtime uses `MIR_DESKTOP_MODEL_BACKEND=auto` by default. With the
 optional ONNX Runtime dependency installed, `auto`/CPU selects native inference;
 explicit CUDA remains on PyTorch until a CUDA-provider parity and tail-latency

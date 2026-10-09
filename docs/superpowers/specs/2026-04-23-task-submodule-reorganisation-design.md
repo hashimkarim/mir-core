@@ -1,8 +1,10 @@
 # mir-core Task Submodule Reorganisation — Design Spec
 
-**Date:** 2026-04-23  
-**Scope:** `mir-core` package  
-**Status:** Approved
+> **Status:** historical record (design approved on 2026-04-23)\
+> **Date:** 2026-04-23\
+> **Source of truth:** this file for the design as approved; the code in `mir_core/beats/`, `mir_core/classifier/` and `mir_core/utils/hashing.py` for the layout that exists today
+
+**Scope:** `mir-core` package
 
 ---
 

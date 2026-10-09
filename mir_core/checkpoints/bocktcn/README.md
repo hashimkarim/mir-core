@@ -1,26 +1,37 @@
-# Bock TCN Baseline Checkpoints
+# Böck TCN baseline checkpoints
 
-These resources package the canonical madmom TCN beat model ensemble from:
+This folder packages the eight members of the madmom TCN beat model ensemble,
+the published baseline of the Böck TCN model family. The source files are
+`madmom/madmom/models/beats/2019/beats_tcn_[1-8].pkl`.
 
-`madmom/madmom/models/beats/2019/beats_tcn_[1-8].pkl`
+## Contents
 
-The selector names map to the eight ensemble members:
+| Selector | Packaged file | Source file |
+| --- | --- | --- |
+| `baseline` | `baseline.pkl` | `beats_tcn_1.pkl` |
+| `baseline_alt0` | `baseline_alt0.pkl` | `beats_tcn_2.pkl` |
+| `baseline_alt1` | `baseline_alt1.pkl` | `beats_tcn_3.pkl` |
+| `baseline_alt2` | `baseline_alt2.pkl` | `beats_tcn_4.pkl` |
+| `baseline_alt3` | `baseline_alt3.pkl` | `beats_tcn_5.pkl` |
+| `baseline_alt4` | `baseline_alt4.pkl` | `beats_tcn_6.pkl` |
+| `baseline_alt5` | `baseline_alt5.pkl` | `beats_tcn_7.pkl` |
+| `baseline_alt6` | `baseline_alt6.pkl` | `beats_tcn_8.pkl` |
 
-| Selector | Source file |
-| --- | --- |
-| `baseline` | `beats_tcn_1.pkl` |
-| `baseline_alt0` | `beats_tcn_2.pkl` |
-| `baseline_alt1` | `beats_tcn_3.pkl` |
-| `baseline_alt2` | `beats_tcn_4.pkl` |
-| `baseline_alt3` | `beats_tcn_5.pkl` |
-| `baseline_alt4` | `beats_tcn_6.pkl` |
-| `baseline_alt5` | `beats_tcn_7.pkl` |
-| `baseline_alt6` | `beats_tcn_8.pkl` |
+`__init__.py` holds the selector table and the pinned SHA-256 digests.
 
 These are madmom pickle resources for the published inference ensemble, not
-native PyTorch `BockTCN` state dictionaries.
+native PyTorch `BockTCN` state dictionaries. Their licence differs from the
+code: see [`third_party/madmom-NOTICE.md`](../../../third_party/madmom-NOTICE.md).
 
-## Portable original ensemble
+## How to use it
+
+```python
+from mir_core.checkpoints import bocktcn_baseline_checkpoint_path
+
+path = bocktcn_baseline_checkpoint_path("baseline_alt0")
+```
+
+### Portable original ensemble
 
 `mir_core.models.bock_tcn.LegacyBockTCN()` loads all eight resources only after
 checking their pinned SHA-256 digests. Pass a list of packaged selectors to
@@ -42,4 +53,10 @@ double accumulation before float32 channel summation. The export gate and
 full waveform ensemble against the original madmom processors with the
 existing fixed native model tolerance (`rtol=2e-5`, `atol=2e-6`). Exporting
 modified weights or source metadata under this historical identity is rejected.
-The original resource licensing and attribution above still apply.
+
+## Status
+
+Current on 2026-10-09. The eight files match the pinned digests in
+`__init__.py` and the madmom files in
+`thesis-docs/literature/codebases/beat-detection/bocktcn/madmom/` (checked
+with `sha256sum`).

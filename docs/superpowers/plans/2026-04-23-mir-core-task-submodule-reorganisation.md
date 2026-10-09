@@ -1,5 +1,9 @@
 # mir-core Task Submodule Reorganisation Implementation Plan
 
+> **Status:** historical record\
+> **Date:** 2026-04-23\
+> **Source of truth:** this file for the plan as written; the code in `mir_core/beats/`, `mir_core/classifier/` and `mir_core/utils/hashing.py` for the layout that exists today
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reorganise `mir_core` into task submodules (`beats/`, `classifier/`) with `btk-`/`clf-`-prefixed experiment hashes, removing the flat `mir_core/experiments/` package.
